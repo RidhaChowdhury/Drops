@@ -8,7 +8,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "./components/ui/drawer";
-import { Minus, Plus, GlassWater } from "lucide-react";
+import { Minus, Plus, GlassWater, RotateCcw } from "lucide-react"; // Add RotateCcw for undo
 import { ModeToggle } from "./components/mode-toggle";
 import { useTheme } from "@/components/theme-provider";
 
@@ -22,6 +22,7 @@ export default function Log() {
   const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
   const [isAddingNew, setIsAddingNew] = useState(false); // To toggle between adding and editing quick-adds
   const [currentButton, setCurrentButton] = useState<number | null>(null); // Track which quick add is being edited
+  const [lastAddedAmount, setLastAddedAmount] = useState<number | null>(null); // To store the last added amount for undo
 
   // Handle quick add right-click for editing
   const handleRightClick = (e: React.MouseEvent, index: number) => {
@@ -61,6 +62,15 @@ export default function Log() {
   // Add custom amount of water directly (used by the FAB)
   const handleAddWater = (amount: number) => {
     setWaterIntake((prev) => prev + amount);
+    setLastAddedAmount(amount); // Store the last added amount for undo
+  };
+
+  // Undo the last added water intake
+  const handleUndo = () => {
+    if (lastAddedAmount !== null) {
+      setWaterIntake((prev) => Math.max(0, prev - lastAddedAmount)); // Remove the last added amount, ensure intake doesn't go below 0
+      setLastAddedAmount(null); // Clear the undo buffer
+    }
   };
 
   // Handle custom input change
@@ -138,7 +148,18 @@ export default function Log() {
         </div>
       </div>
 
-      <div className="fixed bottom-8 right-8 z-20">
+      <div className="fixed bottom-8 right-8 z-20 flex space-x-4">
+        {/* Undo FAB */}
+        <Button 
+          onClick={handleUndo} 
+          variant='secondary'
+          className="p-6 h-24 w-24 rounded-full shadow-lg text-white bg-red-500 hover:bg-red-700"
+          size="lg"
+          disabled={lastAddedAmount === null} // Disable if no last amount to undo
+        >
+          <RotateCcw />
+        </Button>
+        {/* Custom FAB */}
         <Button 
           onClick={handleOpenCustomDrawer} 
           className="p-6 h-24 w-24 rounded-full shadow-lg text-white hover:bg-blue-500"
@@ -146,6 +167,7 @@ export default function Log() {
         >
           <GlassWater />
         </Button>
+
       </div>
 
       {/* Quick Add Drawer for editing or adding quick-add values */}
@@ -157,7 +179,7 @@ export default function Log() {
         >
           <DrawerHeader>
             <DrawerTitle className="text-3xl">
-              {isAddingNew ? "Add Quick Add" : "Edit Quick Add Value"}
+              {isAddingNew ? "New Quick Add" : "Edit Quick Add Value"}
             </DrawerTitle>
           </DrawerHeader>
           <div className="p-6 pb-0">
