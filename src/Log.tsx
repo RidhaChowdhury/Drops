@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useState } from "react";
 import { Button } from "./components/ui/button";
 import {
@@ -9,7 +8,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "./components/ui/drawer";
-import { Minus, Plus, Trash, GlassWater } from "lucide-react";
+import { Minus, Plus, GlassWater } from "lucide-react";
 import { ModeToggle } from "./components/mode-toggle";
 import { useTheme } from "@/components/theme-provider";
 

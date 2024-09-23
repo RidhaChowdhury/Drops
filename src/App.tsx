@@ -1,4 +1,3 @@
-import * as React from "react";
 import { ThemeProvider } from "@/components/theme-provider"
 import Log from "./Log"
 
