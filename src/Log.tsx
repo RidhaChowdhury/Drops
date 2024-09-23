@@ -32,7 +32,7 @@ export default function Log() {
   };
 
   const handleAddWater = (amount: number) => {
-    setWaterIntake((prev) => Math.min(prev + amount, dailyGoal));
+    setWaterIntake((prev) => prev + amount);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +84,7 @@ export default function Log() {
       }`}
     >
       <div className="absolute top-6 left-6 z-10">
-        <h2 className="text-3xl font-semibold">Hydrate</h2>
+        <h2 className="text-3xl font-semibold">Hydrated{waterIntake < dailyGoal ? "?" : "!"}</h2>
       </div>
 
       <div className="absolute top-6 right-6 z-10">
