@@ -182,7 +182,7 @@ export default function Log() {
           onClick={handleUndo}
           onContextMenu={handleRightClickUndo}
           variant="secondary"
-          className={`p-4 h-12 w-12 rounded-full shadow-lg text-white bg-gray-700 ${
+          className={`p-4 h-18 w-18 rounded-full shadow-lg text-white bg-gray-700 ${
             isSpinning ? "spin-reverse-ease-in-out" : ""
           }`}
           size="lg"
@@ -193,7 +193,7 @@ export default function Log() {
         {/* Custom Add Button */}
         <Button
           onClick={handleOpenCustomDrawer}
-          className="p-4 h-12 w-12 rounded-full shadow-lg text-white hover:bg-blue-500"
+          className="p-4 h-18 w-18 rounded-full shadow-lg text-white hover:bg-blue-500"
           size="lg"
         >
           <GlassWater />
