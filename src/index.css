@@ -6,3 +6,16 @@
 * {
   user-select: none;
 }
+
+@keyframes spin-reverse-ease-in-out {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.spin-reverse-ease-in-out {
+  animation: spin-reverse-ease-in-out 1s ease-in-out infinite;
+}

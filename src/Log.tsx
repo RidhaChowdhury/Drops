@@ -8,18 +8,47 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "./components/ui/drawer";
-import { Minus, Plus, GlassWater, RotateCcw } from "lucide-react";
+import { Minus, Plus, GlassWater, RotateCcw } from "lucide-react"; 
 import { ModeToggle } from "./components/mode-toggle";
 import { useTheme } from "@/components/theme-provider";
 
+// Define the types for water history entries
+type WaterEntry = {
+  date: string;
+  intake: number;
+};
+
+// Utility function to get today's date in 'YYYY-MM-DD' format
+const getCurrentDate = (): string => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+};
+
+// Utility function to get water history from localStorage
+const getWaterHistory = (): WaterEntry[] => {
+  const history = localStorage.getItem('waterHistory');
+  return history ? JSON.parse(history) : [];
+};
+
+// Function to save water history to localStorage
+const saveWaterHistory = (history: WaterEntry[]): void => {
+  localStorage.setItem('waterHistory', JSON.stringify(history));
+};
+
 export default function Log() {
-  const { theme, setTheme } = useTheme(); // Assuming setTheme is available from useTheme
+  const { theme } = useTheme();
   const dailyGoal = 150;
 
-  const [waterIntake, setWaterIntake] = useState<number>(() => {
-    const savedIntake = localStorage.getItem('waterIntake');
-    return savedIntake ? JSON.parse(savedIntake) : 0;
-  });
+  // Get water history
+  const waterHistory: WaterEntry[] = getWaterHistory();
+  const currentDate: string = getCurrentDate();
+
+  // Check if today's entry exists in the history, otherwise default to 0
+  const todayEntry: WaterEntry | undefined = waterHistory.find((entry: WaterEntry) => entry.date === currentDate);
+  const [waterIntake, setWaterIntake] = useState<number>(todayEntry ? todayEntry.intake : 0);
+
+  // Log each individual drink in an array to support undoing multiple steps
+  const [drinkLog, setDrinkLog] = useState<number[]>([]);
 
   const [quickAddValues, setQuickAddValues] = useState<number[]>(() => {
     const savedQuickAddValues = localStorage.getItem('quickAddValues');
@@ -29,72 +58,78 @@ export default function Log() {
   const [isQuickAddDrawerOpen, setIsQuickAddDrawerOpen] = useState(false);
   const [isCustomDrawerOpen, setIsCustomDrawerOpen] = useState(false);
   const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
-  const [isAddingNew, setIsAddingNew] = useState(false); // To toggle between adding and editing quick-adds
-  const [currentButton, setCurrentButton] = useState<number | null>(null); // Track which quick add is being edited
-  const [lastAddedAmount, setLastAddedAmount] = useState<number | null>(null); // To store the last added amount for undo
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [currentButton, setCurrentButton] = useState<number | null>(null);
 
-  // Save water intake to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('waterIntake', JSON.stringify(waterIntake));
-  }, [waterIntake]);
+  const [isSpinning, setIsSpinning] = useState(false); // For spinning icon
+  const [undoTimeout, setUndoTimeout] = useState<NodeJS.Timeout | null>(null); // For long press
 
-  // Save quick add values to localStorage whenever they change
+  // Save water intake and history to localStorage whenever intake changes
   useEffect(() => {
-    localStorage.setItem('quickAddValues', JSON.stringify(quickAddValues));
+    const updatedHistory = waterHistory.filter((entry: WaterEntry) => entry.date !== currentDate);
+    updatedHistory.push({ date: currentDate, intake: waterIntake });
+    saveWaterHistory(updatedHistory);
+  }, [waterIntake, currentDate, waterHistory]);
+
+  // Save quick add values to localStorage whenever they change, and sort them
+  useEffect(() => {
+    const sortedQuickAddValues = [...quickAddValues].sort((a, b) => a - b); // Sort values
+    localStorage.setItem('quickAddValues', JSON.stringify(sortedQuickAddValues));
+    setQuickAddValues(sortedQuickAddValues); // Update state with sorted values
   }, [quickAddValues]);
 
-  // Save theme preference to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  // Handle quick add right-click for editing
   const handleRightClick = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
     setCurrentButton(index);
     setNewQuickAddValue(quickAddValues[index]);
-    setIsAddingNew(false); // We're editing, not adding
-    setIsQuickAddDrawerOpen(true); // Open quick-add drawer
+    setIsAddingNew(false);
+    setIsQuickAddDrawerOpen(true);
   };
 
-  // Handle adding a quick add value
   const handleAddNewQuickAdd = () => {
     setNewQuickAddValue(16);
-    setIsAddingNew(true); // We're adding a new quick add
-    setIsQuickAddDrawerOpen(true); // Open quick-add drawer
+    setIsAddingNew(true);
+    setIsQuickAddDrawerOpen(true);
   };
 
-  // Handle saving quick add value (add new or edit existing)
   const handleSaveQuickAdd = () => {
     if (isAddingNew) {
-      setQuickAddValues([...quickAddValues, Math.max(1, newQuickAddValue)]);
+      const updatedQuickAddValues = [...quickAddValues, Math.max(1, newQuickAddValue)];
+      setQuickAddValues(updatedQuickAddValues);
     } else if (currentButton !== null) {
       const newValues = [...quickAddValues];
       newValues[currentButton] = Math.max(1, newQuickAddValue);
       setQuickAddValues(newValues);
     }
-    setIsQuickAddDrawerOpen(false); // Close the quick-add drawer
+    setIsQuickAddDrawerOpen(false);
   };
 
-  // Handle deleting a quick add value
   const handleDeleteQuickAdd = () => {
     const newValues = quickAddValues.filter((_, index) => index !== currentButton);
     setQuickAddValues(newValues);
-    setIsQuickAddDrawerOpen(false); // Close the quick-add drawer
+    setIsQuickAddDrawerOpen(false);
   };
 
-  // Add custom amount of water directly (used by the FAB)
   const handleAddWater = (amount: number) => {
     setWaterIntake((prev) => prev + amount);
-    setLastAddedAmount(amount); // Store the last added amount for undo
+    setDrinkLog((prev) => [...prev, amount]); // Log each drink for undo functionality
   };
 
-  // Undo the last added water intake
+  // Undo the last drink added
   const handleUndo = () => {
-    if (lastAddedAmount !== null) {
-      setWaterIntake((prev) => Math.max(0, prev - lastAddedAmount)); // Remove the last added amount, ensure intake doesn't go below 0
-      setLastAddedAmount(null); // Clear the undo buffer
+    if (drinkLog.length > 0) {
+      const lastDrink = drinkLog[drinkLog.length - 1];
+      setWaterIntake((prev) => Math.max(0, prev - lastDrink));
+      setDrinkLog((prev) => prev.slice(0, -1)); // Remove the last drink from the log
     }
+  };
+
+  // Reset all water intake
+  const handleReset = () => {
+    setWaterIntake(0);
+    setDrinkLog([]); // Clear the log
+    setIsSpinning(false); // Stop spinning
+    if (undoTimeout) clearTimeout(undoTimeout); // Clear timeout if any
   };
 
   // Handle custom input change
@@ -107,20 +142,31 @@ export default function Log() {
     setNewQuickAddValue(Math.max(1, newQuickAddValue));
   };
 
-  // Open drawer for adding a custom amount via FAB
   const handleOpenCustomDrawer = () => {
     setNewQuickAddValue(16);
-    setIsCustomDrawerOpen(true); // Open the custom drawer for custom water intake
+    setIsCustomDrawerOpen(true);
   };
 
   const handleCancel = () => {
-    setIsQuickAddDrawerOpen(false); // Close quick-add drawer
-    setIsCustomDrawerOpen(false); // Close custom drawer
+    setIsQuickAddDrawerOpen(false);
+    setIsCustomDrawerOpen(false);
   };
 
   const handleSaveCustomAmount = () => {
-    handleAddWater(newQuickAddValue); // Add custom amount to water intake
-    setIsCustomDrawerOpen(false); // Close custom drawer
+    handleAddWater(newQuickAddValue);
+    setIsCustomDrawerOpen(false);
+  };
+
+  // Handle long press for resetting
+  const handleMouseDown = () => {
+    setIsSpinning(true); // Start spinning icon
+    const timeout = setTimeout(handleReset, 1000); // Reset after 2 seconds of holding
+    setUndoTimeout(timeout);
+  };
+
+  const handleMouseUp = () => {
+    if (undoTimeout) clearTimeout(undoTimeout); // Cancel reset if released early
+    setIsSpinning(false); // Stop spinning
   };
 
   return (
@@ -152,7 +198,8 @@ export default function Log() {
         </div>
 
         <div className="flex flex-wrap justify-center gap-6 mb-8">
-          {quickAddValues.map((value, index) => (
+          {/* Sort quick add values before mapping */}
+          {[...quickAddValues].sort((a, b) => a - b).map((value, index) => (
             <Button
               key={index}
               onClick={() => handleAddWater(value)}
@@ -172,17 +219,22 @@ export default function Log() {
         </div>
       </div>
 
-      <div className="fixed bottom-8 right-8 z-20 flex space-x-4 items-center">
+      <div className="fixed bottom-8 right-8 z-20 flex space-x-4">
         {/* Undo FAB */}
         <Button 
-          onClick={handleUndo} 
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onClick={handleUndo}
           variant='secondary'
-          className="p-6 h-16 w-16 rounded-full shadow-lg text-white hover:bg-red-700"
+          className={`p-6 h-24 w-24 rounded-full shadow-lg text-white bg-red-500 hover:bg-red-700 ${
+            isSpinning ? "spin-reverse-ease-in-out" : ""
+          }`}
           size="lg"
-          disabled={lastAddedAmount === null} // Disable if no last amount to undo
         >
           <RotateCcw />
         </Button>
+
         {/* Custom FAB */}
         <Button 
           onClick={handleOpenCustomDrawer} 
@@ -191,7 +243,6 @@ export default function Log() {
         >
           <GlassWater />
         </Button>
-
       </div>
 
       {/* Quick Add Drawer for editing or adding quick-add values */}
