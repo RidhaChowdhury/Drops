@@ -17,23 +17,53 @@ export default function Log() {
   const dailyGoal = 150;
   const [waterIntake, setWaterIntake] = useState(0);
   const [quickAddValues, setQuickAddValues] = useState([8, 16]);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [currentButton, setCurrentButton] = useState<number | null>(null);
-  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isQuickAddDrawerOpen, setIsQuickAddDrawerOpen] = useState(false);
+  const [isCustomDrawerOpen, setIsCustomDrawerOpen] = useState(false);
   const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
+  const [isAddingNew, setIsAddingNew] = useState(false); // To toggle between adding and editing quick-adds
+  const [currentButton, setCurrentButton] = useState<number | null>(null); // Track which quick add is being edited
 
+  // Handle quick add right-click for editing
   const handleRightClick = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
     setCurrentButton(index);
-    setIsAddingNew(false);
     setNewQuickAddValue(quickAddValues[index]);
-    setIsDrawerOpen(true);
+    setIsAddingNew(false); // We're editing, not adding
+    setIsQuickAddDrawerOpen(true); // Open quick-add drawer
   };
 
+  // Handle adding a quick add value
+  const handleAddNewQuickAdd = () => {
+    setNewQuickAddValue(16);
+    setIsAddingNew(true); // We're adding a new quick add
+    setIsQuickAddDrawerOpen(true); // Open quick-add drawer
+  };
+
+  // Handle saving quick add value (add new or edit existing)
+  const handleSaveQuickAdd = () => {
+    if (isAddingNew) {
+      setQuickAddValues([...quickAddValues, Math.max(1, newQuickAddValue)]);
+    } else if (currentButton !== null) {
+      const newValues = [...quickAddValues];
+      newValues[currentButton] = Math.max(1, newQuickAddValue);
+      setQuickAddValues(newValues);
+    }
+    setIsQuickAddDrawerOpen(false); // Close the quick-add drawer
+  };
+
+  // Handle deleting a quick add value
+  const handleDeleteQuickAdd = () => {
+    const newValues = quickAddValues.filter((_, index) => index !== currentButton);
+    setQuickAddValues(newValues);
+    setIsQuickAddDrawerOpen(false); // Close the quick-add drawer
+  };
+
+  // Add custom amount of water directly (used by the FAB)
   const handleAddWater = (amount: number) => {
     setWaterIntake((prev) => prev + amount);
   };
 
+  // Handle custom input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === "" ? 16 : parseInt(e.target.value);
     setNewQuickAddValue(value);
@@ -43,37 +73,20 @@ export default function Log() {
     setNewQuickAddValue(Math.max(1, newQuickAddValue));
   };
 
-  const handleDeleteQuickAdd = () => {
-    const newValues = quickAddValues.filter((_, index) => index !== currentButton);
-    setQuickAddValues(newValues);
-    setIsDrawerOpen(false);
-  };
-
-  const handleAddNewQuickAdd = () => {
+  // Open drawer for adding a custom amount via FAB
+  const handleOpenCustomDrawer = () => {
     setNewQuickAddValue(16);
-    setIsAddingNew(true);
-    setIsDrawerOpen(true);
-  };
-
-  const handleSaveQuickAdd = () => {
-    if (isAddingNew) {
-      setQuickAddValues([...quickAddValues, Math.max(1, newQuickAddValue)]);
-    } else if (currentButton !== null) {
-      const newValues = [...quickAddValues];
-      newValues[currentButton] = Math.max(1, newQuickAddValue);
-      setQuickAddValues(newValues);
-    }
-    setIsDrawerOpen(false);
+    setIsCustomDrawerOpen(true); // Open the custom drawer for custom water intake
   };
 
   const handleCancel = () => {
-    setIsDrawerOpen(false);
+    setIsQuickAddDrawerOpen(false); // Close quick-add drawer
+    setIsCustomDrawerOpen(false); // Close custom drawer
   };
 
-  const handleOpenCustomDrawer = () => {
-    setNewQuickAddValue(16);
-    setIsAddingNew(true);
-    setIsDrawerOpen(true);
+  const handleSaveCustomAmount = () => {
+    handleAddWater(newQuickAddValue); // Add custom amount to water intake
+    setIsCustomDrawerOpen(false); // Close custom drawer
   };
 
   return (
@@ -135,7 +148,8 @@ export default function Log() {
         </Button>
       </div>
 
-      <Drawer open={isDrawerOpen} onClose={handleCancel}>
+      {/* Quick Add Drawer for editing or adding quick-add values */}
+      <Drawer open={isQuickAddDrawerOpen} onClose={handleCancel}>
         <DrawerContent
           className={`${
             theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"
@@ -143,7 +157,7 @@ export default function Log() {
         >
           <DrawerHeader>
             <DrawerTitle className="text-3xl">
-              {isAddingNew ? "Custom Amount" : "Edit Quick Add Value"}
+              {isAddingNew ? "Add Quick Add" : "Edit Quick Add Value"}
             </DrawerTitle>
           </DrawerHeader>
           <div className="p-6 pb-0">
@@ -194,6 +208,64 @@ export default function Log() {
                 Remove
               </Button>
             )}
+            <DrawerClose asChild>
+              <Button variant="outline" onClick={handleCancel} className="px-6 py-3 rounded-xl text-xl">
+                Cancel
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Custom Amount Drawer for adding custom water intake */}
+      <Drawer open={isCustomDrawerOpen} onClose={handleCancel}>
+        <DrawerContent
+          className={`${
+            theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"
+          }`}
+        >
+          <DrawerHeader>
+            <DrawerTitle className="text-3xl">Add Custom Amount</DrawerTitle>
+          </DrawerHeader>
+          <div className="p-6 pb-0">
+            <div className="flex items-center justify-center space-x-4">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 shrink-0 rounded-full"
+                onClick={() => setNewQuickAddValue((prev) => Math.max(1, prev - 1))}
+                disabled={newQuickAddValue <= 1}
+              >
+                <Minus size={24} />
+              </Button>
+
+              <div className="flex-1 text-center">
+                <input
+                  type="number"
+                  value={newQuickAddValue}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
+                  className="text-8xl font-bold tracking-tighter bg-transparent border-none text-center w-40"
+                  inputMode="numeric"
+                />
+                <div className="text-xl uppercase mt-2">Ounces</div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 shrink-0 rounded-full"
+                onClick={() => setNewQuickAddValue((prev) => prev + 1)}
+              >
+                <Plus size={24} />
+              </Button>
+            </div>
+          </div>
+
+          <DrawerFooter className="flex justify-between p-6">
+            <Button onClick={handleSaveCustomAmount} className="px-6 py-3 rounded-xl text-xl">
+              Add
+            </Button>
             <DrawerClose asChild>
               <Button variant="outline" onClick={handleCancel} className="px-6 py-3 rounded-xl text-xl">
                 Cancel
