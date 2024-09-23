@@ -66,17 +66,23 @@ export default function Log() {
 
   // Save water intake and history to localStorage whenever intake changes
   useEffect(() => {
-    const updatedHistory = waterHistory.filter((entry: WaterEntry) => entry.date !== currentDate);
+    // Create a local copy of waterHistory to avoid recomputation on each render
+    const updatedHistory = getWaterHistory().filter((entry: WaterEntry) => entry.date !== currentDate);
     updatedHistory.push({ date: currentDate, intake: waterIntake });
     saveWaterHistory(updatedHistory);
-  }, [waterIntake, currentDate, waterHistory]);
+  }, [waterIntake, currentDate]);
 
-  // Save quick add values to localStorage whenever they change, and sort them
+
+  // Save quick add values to localStorage whenever they change, and sort them if necessary
   useEffect(() => {
     const sortedQuickAddValues = [...quickAddValues].sort((a, b) => a - b); // Sort values
+    // Only update state if the sorted array is different from the current state
+    if (JSON.stringify(sortedQuickAddValues) !== JSON.stringify(quickAddValues)) {
+      setQuickAddValues(sortedQuickAddValues); // Update state with sorted values
+    }
     localStorage.setItem('quickAddValues', JSON.stringify(sortedQuickAddValues));
-    setQuickAddValues(sortedQuickAddValues); // Update state with sorted values
   }, [quickAddValues]);
+
 
   const handleRightClick = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
