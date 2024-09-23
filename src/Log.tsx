@@ -9,133 +9,194 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "./components/ui/drawer";
-import { Minus, Plus } from "lucide-react";
-import { ModeToggle } from "./components/mode-toggle"; // Import the ModeToggle component
-import { useTheme } from "@/components/theme-provider"; // Import the useTheme hook
+import { Minus, Plus, Trash, GlassWater } from "lucide-react";
+import { ModeToggle } from "./components/mode-toggle";
+import { useTheme } from "@/components/theme-provider";
 
 export default function Log() {
-  const { theme } = useTheme(); // Get the current theme (dark or light)
-  const dailyGoal = 150; // Daily water intake goal in ounces
-  const [waterIntake, setWaterIntake] = useState(0); // Track water intake
-  const [quickAddValues, setQuickAddValues] = useState([8, 16]); // Default quick add values
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false); // Drawer open/close state
-  const [currentButton, setCurrentButton] = useState(0); // Track which button is being edited
+  const { theme } = useTheme();
+  const dailyGoal = 150;
+  const [waterIntake, setWaterIntake] = useState(0);
+  const [quickAddValues, setQuickAddValues] = useState([8, 16]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [currentButton, setCurrentButton] = useState<number | null>(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
 
-  // Right-click (context menu) detection for desktop as a long press simulation
   const handleRightClick = (e: React.MouseEvent, index: number) => {
-    e.preventDefault(); // Prevent default right-click behavior
-    setCurrentButton(index); // Set the button being right-clicked
-    setIsDrawerOpen(true); // Open the drawer
+    e.preventDefault();
+    setCurrentButton(index);
+    setIsAddingNew(false);
+    setNewQuickAddValue(quickAddValues[index]);
+    setIsDrawerOpen(true);
   };
 
-  // Function to handle adding water
   const handleAddWater = (amount: number) => {
     setWaterIntake((prev) => Math.min(prev + amount, dailyGoal));
   };
 
-  // Function to handle quick add value update
-  function handleQuickAddChange(adjustment: number) {
-    const newValues = [...quickAddValues];
-    newValues[currentButton] = Math.max(1, newValues[currentButton] + adjustment); // Ensure no negative values
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value === "" ? 16 : parseInt(e.target.value);
+    setNewQuickAddValue(value);
+  };
+
+  const handleInputBlur = () => {
+    setNewQuickAddValue(Math.max(1, newQuickAddValue));
+  };
+
+  const handleDeleteQuickAdd = () => {
+    const newValues = quickAddValues.filter((_, index) => index !== currentButton);
     setQuickAddValues(newValues);
-  }
+    setIsDrawerOpen(false);
+  };
+
+  const handleAddNewQuickAdd = () => {
+    setNewQuickAddValue(16);
+    setIsAddingNew(true);
+    setIsDrawerOpen(true);
+  };
+
+  const handleSaveQuickAdd = () => {
+    if (isAddingNew) {
+      setQuickAddValues([...quickAddValues, Math.max(1, newQuickAddValue)]);
+    } else if (currentButton !== null) {
+      const newValues = [...quickAddValues];
+      newValues[currentButton] = Math.max(1, newQuickAddValue);
+      setQuickAddValues(newValues);
+    }
+    setIsDrawerOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsDrawerOpen(false);
+  };
+
+  const handleOpenCustomDrawer = () => {
+    setNewQuickAddValue(16);
+    setIsAddingNew(true);
+    setIsDrawerOpen(true);
+  };
 
   return (
     <div
-      className={`relative flex flex-col items-center justify-center min-h-screen overflow-hidden ${
+      className={`relative flex flex-col items-center justify-center min-h-screen overflow-hidden font-sans ${
         theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-black"
-      }`} // Change background and text color based on the theme
+      }`}
     >
-      {/* Mode toggle positioned at the top right */}
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-6 left-6 z-10">
+        <h2 className="text-3xl font-semibold">Hydrate</h2>
+      </div>
+
+      <div className="absolute top-6 right-6 z-10">
         <ModeToggle />
       </div>
 
-      {/* Background that fills from the bottom up */}
       <div
         className={`absolute bottom-0 left-0 w-full transition-all duration-300 ${
-          theme === "dark" ? "bg-blue-900" : "bg-blue-800"
-        }`} // Adjust background color based on theme
+          theme === "dark" ? "bg-blue-900" : "bg-blue-500"
+        }`}
         style={{
-          height: `${(waterIntake / dailyGoal) * 100}%`, // Fills the background based on water intake
+          height: `${(waterIntake / dailyGoal) * 100}%`,
         }}
       ></div>
 
-      {/* Content overlay */}
       <div className="relative z-10 flex flex-col items-center">
-        <h1 className="text-4xl font-bold mb-4">Water Logger</h1>
-        <div className="mb-6 w-1/2 text-center">
-          <p className="text-xl mt-2">
-            {waterIntake} oz of {dailyGoal} oz
-          </p>
+        <div className="mb-10 text-center">
+          <p className="text-8xl font-bold mt-4">{waterIntake} oz</p>
         </div>
-        <div className="flex gap-4">
-          <Button
-            onClick={() => handleAddWater(quickAddValues[0])}
-            onContextMenu={(e) => handleRightClick(e, 0)} // Right-click for button 1
-            className="px-4 py-2 rounded"
+
+        <div className="flex flex-wrap justify-center gap-6 mb-8">
+          {quickAddValues.map((value, index) => (
+            <Button
+              key={index}
+              onClick={() => handleAddWater(value)}
+              onContextMenu={(e) => handleRightClick(e, index)}
+              className="px-6 py-4 rounded-2xl text-2xl h-16 w-20"
+            >
+              {value}oz
+            </Button>
+          ))}
+          <Button 
+            onClick={handleAddNewQuickAdd} 
+            variant="secondary" 
+            className="rounded-2xl text-2xl h-16 w-16 flex items-center justify-center"
           >
-            +{quickAddValues[0]}oz
-          </Button>
-          <Button
-            onClick={() => handleAddWater(quickAddValues[1])}
-            onContextMenu={(e) => handleRightClick(e, 1)} // Right-click for button 2
-            className="px-4 py-2 rounded"
-          >
-            +{quickAddValues[1]}oz
+            <Plus />
           </Button>
         </div>
       </div>
 
-      {/* Drawer component */}
-      <Drawer open={isDrawerOpen} onClose={() => setIsDrawerOpen(false)}>
-        <DrawerContent>
+      <div className="fixed bottom-8 right-8 z-20">
+        <Button 
+          onClick={handleOpenCustomDrawer} 
+          className="p-6 h-24 w-24 rounded-full shadow-lg text-white hover:bg-blue-500"
+          size="lg"
+        >
+          <GlassWater />
+        </Button>
+      </div>
+
+      <Drawer open={isDrawerOpen} onClose={handleCancel}>
+        <DrawerContent
+          className={`${
+            theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"
+          }`}
+        >
           <DrawerHeader>
-            <DrawerTitle>Edit Quick Add Value</DrawerTitle>
+            <DrawerTitle className="text-3xl">
+              {isAddingNew ? "Custom Amount" : "Edit Quick Add Value"}
+            </DrawerTitle>
           </DrawerHeader>
-          <div className="p-4 pb-0">
-            <div className="flex items-center justify-center space-x-2">
+          <div className="p-6 pb-0">
+            <div className="flex items-center justify-center space-x-4">
               <Button
                 variant="outline"
                 size="icon"
-                className="h-8 w-8 shrink-0 rounded-full"
-                onClick={() => handleQuickAddChange(-1)}
-                disabled={quickAddValues[currentButton] <= 1}
+                className="h-12 w-12 shrink-0 rounded-full"
+                onClick={() => setNewQuickAddValue((prev) => Math.max(1, prev - 1))}
+                disabled={newQuickAddValue <= 1}
               >
-                <Minus className="h-4 w-4" />
-                <span className="sr-only">Decrease</span>
+                <Minus size={24} />
               </Button>
+
               <div className="flex-1 text-center">
-                <div className="text-7xl font-bold tracking-tighter">
-                  {quickAddValues[currentButton]}
-                </div>
-                <div className="text-[0.70rem] uppercase">
-                  Ounces
-                </div>
+                <input
+                  type="number"
+                  value={newQuickAddValue}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
+                  className="text-8xl font-bold tracking-tighter bg-transparent border-none text-center w-40"
+                  inputMode="numeric"
+                />
+                <div className="text-xl uppercase mt-2">Ounces</div>
               </div>
+
               <Button
                 variant="outline"
                 size="icon"
-                className="h-8 w-8 shrink-0 rounded-full"
-                onClick={() => handleQuickAddChange(1)}
+                className="h-12 w-12 shrink-0 rounded-full"
+                onClick={() => setNewQuickAddValue((prev) => prev + 1)}
               >
-                <Plus className="h-4 w-4" />
-                <span className="sr-only">Increase</span>
+                <Plus size={24} />
               </Button>
             </div>
           </div>
-          <DrawerFooter className="flex justify-between p-4">
-            <Button
-              onClick={() => setIsDrawerOpen(false)}
-              className="px-4 py-2 rounded"
-            >
-              Submit
+
+          <DrawerFooter className="flex justify-between p-6">
+            <Button onClick={handleSaveQuickAdd} className="px-6 py-3 rounded-xl text-xl">
+              {isAddingNew ? "Add" : "Save"}
             </Button>
-            <DrawerClose asChild>
+            {!isAddingNew && (
               <Button
-                variant="outline"
-                onClick={() => setIsDrawerOpen(false)}
+                variant="destructive"
+                className="px-6 py-3 rounded-xl text-xl"
+                onClick={handleDeleteQuickAdd}
               >
+                Remove
+              </Button>
+            )}
+            <DrawerClose asChild>
+              <Button variant="outline" onClick={handleCancel} className="px-6 py-3 rounded-xl text-xl">
                 Cancel
               </Button>
             </DrawerClose>
