@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
 import {
   Drawer,
@@ -8,21 +8,45 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "./components/ui/drawer";
-import { Minus, Plus, GlassWater, RotateCcw } from "lucide-react"; // Add RotateCcw for undo
+import { Minus, Plus, GlassWater, RotateCcw } from "lucide-react";
 import { ModeToggle } from "./components/mode-toggle";
 import { useTheme } from "@/components/theme-provider";
 
 export default function Log() {
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme(); // Assuming setTheme is available from useTheme
   const dailyGoal = 150;
-  const [waterIntake, setWaterIntake] = useState(0);
-  const [quickAddValues, setQuickAddValues] = useState([8, 16]);
+
+  const [waterIntake, setWaterIntake] = useState<number>(() => {
+    const savedIntake = localStorage.getItem('waterIntake');
+    return savedIntake ? JSON.parse(savedIntake) : 0;
+  });
+
+  const [quickAddValues, setQuickAddValues] = useState<number[]>(() => {
+    const savedQuickAddValues = localStorage.getItem('quickAddValues');
+    return savedQuickAddValues ? JSON.parse(savedQuickAddValues) : [8, 16];
+  });
+
   const [isQuickAddDrawerOpen, setIsQuickAddDrawerOpen] = useState(false);
   const [isCustomDrawerOpen, setIsCustomDrawerOpen] = useState(false);
   const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
   const [isAddingNew, setIsAddingNew] = useState(false); // To toggle between adding and editing quick-adds
   const [currentButton, setCurrentButton] = useState<number | null>(null); // Track which quick add is being edited
   const [lastAddedAmount, setLastAddedAmount] = useState<number | null>(null); // To store the last added amount for undo
+
+  // Save water intake to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('waterIntake', JSON.stringify(waterIntake));
+  }, [waterIntake]);
+
+  // Save quick add values to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('quickAddValues', JSON.stringify(quickAddValues));
+  }, [quickAddValues]);
+
+  // Save theme preference to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   // Handle quick add right-click for editing
   const handleRightClick = (e: React.MouseEvent, index: number) => {
@@ -148,12 +172,12 @@ export default function Log() {
         </div>
       </div>
 
-      <div className="fixed bottom-8 right-8 z-20 flex space-x-4">
+      <div className="fixed bottom-8 right-8 z-20 flex space-x-4 items-center">
         {/* Undo FAB */}
         <Button 
           onClick={handleUndo} 
           variant='secondary'
-          className="p-6 h-24 w-24 rounded-full shadow-lg text-white bg-red-500 hover:bg-red-700"
+          className="p-6 h-16 w-16 rounded-full shadow-lg text-white hover:bg-red-700"
           size="lg"
           disabled={lastAddedAmount === null} // Disable if no last amount to undo
         >
