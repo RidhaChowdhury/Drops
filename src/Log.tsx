@@ -16,6 +16,7 @@ import { ModeToggle } from "./components/mode-toggle";
 type WaterEntry = {
   date: string;
   intake: number;
+  drinkLog: number[];  // Store individual intakes for undo functionality
 };
 
 // Utility functions
@@ -28,9 +29,12 @@ export default function Log() {
   const dailyGoal = 150;
   const currentDate = getCurrentDate();
   const waterHistory: WaterEntry[] = getWaterHistory();
+
+  // Find today's entry or create a new one with an empty drink log
   const todayEntry: WaterEntry | undefined = waterHistory.find((entry: WaterEntry) => entry.date === currentDate);
   const [waterIntake, setWaterIntake] = useState<number>(todayEntry ? todayEntry.intake : 0);
-  const [drinkLog, setDrinkLog] = useState<number[]>([]);
+  const [drinkLog, setDrinkLog] = useState<number[]>(todayEntry ? todayEntry.drinkLog : []);  // Load the drink log for the current day
+
   const [quickAddValues, setQuickAddValues] = useState<number[]>(() => JSON.parse(localStorage.getItem('quickAddValues') || '[8, 16]'));
   const [isQuickAddDrawerOpen, setIsQuickAddDrawerOpen] = useState(false);
   const [isCustomDrawerOpen, setIsCustomDrawerOpen] = useState(false); // For the custom add drawer
@@ -39,11 +43,12 @@ export default function Log() {
   const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
   const [isAddingNew, setIsAddingNew] = useState(false);
 
+  // Save water intake and drink log for the current day
   useEffect(() => {
     const updatedHistory = waterHistory.filter((entry: WaterEntry) => entry.date !== currentDate);
-    updatedHistory.push({ date: currentDate, intake: waterIntake });
+    updatedHistory.push({ date: currentDate, intake: waterIntake, drinkLog });  // Save both water intake and drink log
     saveWaterHistory(updatedHistory);
-  }, [waterIntake, currentDate]);
+  }, [waterIntake, drinkLog, currentDate]);
 
   const handleUndo = () => {
     if (drinkLog.length > 0) {
