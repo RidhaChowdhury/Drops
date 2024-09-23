@@ -33,7 +33,7 @@ export default function Log() {
   // Find today's entry or create a new one with an empty drink log
   const todayEntry: WaterEntry | undefined = waterHistory.find((entry: WaterEntry) => entry.date === currentDate);
   const [waterIntake, setWaterIntake] = useState<number>(todayEntry ? todayEntry.intake : 0);
-  const [drinkLog, setDrinkLog] = useState<number[]>(todayEntry ? todayEntry.drinkLog : []);  // Load the drink log for the current day
+  const [drinkLog, setDrinkLog] = useState<number[]>(todayEntry && todayEntry.drinkLog ? todayEntry.drinkLog : []);
 
   const [quickAddValues, setQuickAddValues] = useState<number[]>(() => JSON.parse(localStorage.getItem('quickAddValues') || '[8, 16]'));
   const [isQuickAddDrawerOpen, setIsQuickAddDrawerOpen] = useState(false);
@@ -182,7 +182,7 @@ export default function Log() {
           onClick={handleUndo}
           onContextMenu={handleRightClickUndo}
           variant="secondary"
-          className={`p-4 h-16 w-16 rounded-full shadow-lg text-white bg-gray-700 ${
+          className={`p-4 h-12 w-12 rounded-full shadow-lg text-white bg-gray-700 ${
             isSpinning ? "spin-reverse-ease-in-out" : ""
           }`}
           size="lg"
@@ -193,7 +193,7 @@ export default function Log() {
         {/* Custom Add Button */}
         <Button
           onClick={handleOpenCustomDrawer}
-          className="p-4 h-16 w-16 rounded-full shadow-lg text-white hover:bg-blue-500"
+          className="p-4 h-12 w-12 rounded-full shadow-lg text-white hover:bg-blue-500"
           size="lg"
         >
           <GlassWater />
