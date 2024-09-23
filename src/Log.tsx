@@ -8,7 +8,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "./components/ui/drawer";
-import { Minus, Plus, GlassWater, RotateCcw } from "lucide-react"; 
+import { Minus, Plus, GlassWater, RotateCcw } from "lucide-react";
 import { ModeToggle } from "./components/mode-toggle";
 import { useTheme } from "@/components/theme-provider";
 
@@ -158,13 +158,15 @@ export default function Log() {
   };
 
   // Handle long press for resetting
-  const handleMouseDown = () => {
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault(); // Prevent default behavior to avoid issues
     setIsSpinning(true); // Start spinning icon
-    const timeout = setTimeout(handleReset, 1000); // Reset after 2 seconds of holding
+    const timeout = setTimeout(handleReset, 1000); // Reset after 1 second of holding
     setUndoTimeout(timeout);
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
+    e.preventDefault();
     if (undoTimeout) clearTimeout(undoTimeout); // Cancel reset if released early
     setIsSpinning(false); // Stop spinning
   };
@@ -222,12 +224,12 @@ export default function Log() {
       <div className="fixed bottom-8 right-8 z-20 flex space-x-4">
         {/* Undo FAB */}
         <Button 
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
           onClick={handleUndo}
           variant='secondary'
-          className={`p-6 h-24 w-24 rounded-full shadow-lg text-white bg-red-500 hover:bg-red-700 ${
+          className={`p-4 h-16 w-16 rounded-full shadow-lg text-white bg-blue-900 hover:bg-blue-700 ${
             isSpinning ? "spin-reverse-ease-in-out" : ""
           }`}
           size="lg"
@@ -238,7 +240,7 @@ export default function Log() {
         {/* Custom FAB */}
         <Button 
           onClick={handleOpenCustomDrawer} 
-          className="p-6 h-24 w-24 rounded-full shadow-lg text-white hover:bg-blue-500"
+          className="p-4 h-16 w-16 rounded-full shadow-lg text-white hover:bg-blue-500"
           size="lg"
         >
           <GlassWater />
