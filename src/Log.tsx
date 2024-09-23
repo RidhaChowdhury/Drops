@@ -11,12 +11,13 @@ import {
 import { Minus, Plus, GlassWater, RotateCcw } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { ModeToggle } from "./components/mode-toggle";
+import Wave from 'react-wavify';  // Import the Wave component
 
 // Define the types for water history entries
 type WaterEntry = {
   date: string;
   intake: number;
-  drinkLog: number[];  // Store individual intakes for undo functionality
+  drinkLog: number[];
 };
 
 // Utility functions
@@ -30,50 +31,26 @@ export default function Log() {
   const currentDate = getCurrentDate();
   const waterHistory: WaterEntry[] = getWaterHistory();
 
-  // Find today's entry or create a new one with an empty drink log
   const todayEntry: WaterEntry | undefined = waterHistory.find((entry: WaterEntry) => entry.date === currentDate);
   const [waterIntake, setWaterIntake] = useState<number>(todayEntry ? todayEntry.intake : 0);
   const [drinkLog, setDrinkLog] = useState<number[]>(todayEntry && todayEntry.drinkLog ? todayEntry.drinkLog : []);
 
   const [quickAddValues, setQuickAddValues] = useState<number[]>(() => JSON.parse(localStorage.getItem('quickAddValues') || '[8, 16]'));
   const [isQuickAddDrawerOpen, setIsQuickAddDrawerOpen] = useState(false);
-  const [isCustomDrawerOpen, setIsCustomDrawerOpen] = useState(false); // For the custom add drawer
-  const [isSpinning, setIsSpinning] = useState(false); // For spinning icon
+  const [isCustomDrawerOpen, setIsCustomDrawerOpen] = useState(false);
   const [currentButton, setCurrentButton] = useState<number | null>(null);
   const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
   const [isAddingNew, setIsAddingNew] = useState(false);
 
-  // Save water intake and drink log for the current day
   useEffect(() => {
     const updatedHistory = waterHistory.filter((entry: WaterEntry) => entry.date !== currentDate);
-    updatedHistory.push({ date: currentDate, intake: waterIntake, drinkLog });  // Save both water intake and drink log
+    updatedHistory.push({ date: currentDate, intake: waterIntake, drinkLog });
     saveWaterHistory(updatedHistory);
   }, [waterIntake, drinkLog, currentDate]);
 
-  const handleUndo = () => {
-    if (drinkLog.length > 0) {
-      const lastDrink = drinkLog[drinkLog.length - 1];
-      setWaterIntake((prev) => Math.max(0, prev - lastDrink));
-      setDrinkLog((prev) => prev.slice(0, -1)); // Remove the last drink from the log
-    }
-  };
-
-  const handleRightClickUndo = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default context menu
-    setIsSpinning(true); // Start spinning animation
-    handleReset(); // Reset all intake history
-    setTimeout(() => {
-      setIsSpinning(false); // Stop spinning after 1 second
-    }, 1000);
-  };
-
-  const handleReset = () => {
-    setWaterIntake(0);
-    setDrinkLog([]); // Clear the log
-  };
-
+  // Handle quick add button right-click (context menu) to edit
   const handleRightClickQuickAdd = (e: React.MouseEvent, index: number) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default context menu
     setCurrentButton(index);
     setNewQuickAddValue(quickAddValues[index]);
     setIsAddingNew(false);
@@ -104,13 +81,29 @@ export default function Log() {
     setIsQuickAddDrawerOpen(false);
   };
 
+  // Undo water intake
+  const handleUndo = () => {
+    if (drinkLog.length > 0) {
+      const lastDrink = drinkLog[drinkLog.length - 1];
+      setWaterIntake((prev) => Math.max(0, prev - lastDrink));
+      setDrinkLog((prev) => prev.slice(0, -1)); // Remove the last drink from the log
+    }
+  };
+
+  // Reset all water intake when right-clicking (context menu) on the undo button
+  const handleRightClickUndo = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default context menu
+    setWaterIntake(0);
+    setDrinkLog([]); // Clear the log
+  };
+
   const handleAddWater = (amount: number) => {
     setWaterIntake((prev) => prev + amount);
     setDrinkLog((prev) => [...prev, amount]); // Log each drink for undo functionality
   };
 
   const handleOpenCustomDrawer = () => {
-    setNewQuickAddValue(16); // Default value
+    setNewQuickAddValue(16);
     setIsCustomDrawerOpen(true);
   };
 
@@ -142,12 +135,28 @@ export default function Log() {
         <ModeToggle />
       </div>
 
-      <div
-        className={`absolute bottom-0 left-0 w-full transition-all duration-300 ${
-          theme === "dark" ? "bg-blue-900" : "bg-blue-500"
-        }`}
-        style={{ height: `${(waterIntake / dailyGoal) * 100}%` }}
-      ></div>
+      {/* Water Progress Wave */}
+      <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
+        <div className="relative w-full" style={{ height: '105%' }}>
+          <Wave
+            fill={theme === "dark" ? "#1E3A8A" : "#3B82F6"}
+            paused={false}
+            options={{
+              height: 10,
+              amplitude: 15,
+              speed: 0.15,
+              points: 4,
+            }}
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              width: '100%',
+              height: `${((waterIntake / dailyGoal) * 100)+5}%`,
+              transition: 'height 0.5s ease',
+            }}
+          />
+        </div>
+      </div>
 
       <div className="relative z-10 flex flex-col items-center">
         <div className="mb-10 text-center">
@@ -155,12 +164,11 @@ export default function Log() {
         </div>
 
         <div className="flex flex-wrap justify-center gap-6 mb-8">
-          {/* Quick Add Buttons */}
           {[...quickAddValues].sort((a, b) => a - b).map((value, index) => (
             <Button
               key={index}
               onClick={() => handleAddWater(value)}
-              onContextMenu={(e) => handleRightClickQuickAdd(e, index)}
+              onContextMenu={(e) => handleRightClickQuickAdd(e, index)} // Right-click to edit
               className="px-6 py-4 rounded-2xl text-2xl h-16 w-20"
             >
               {value} oz
@@ -177,23 +185,20 @@ export default function Log() {
       </div>
 
       <div className="fixed bottom-8 right-8 z-20 flex space-x-4">
-        {/* Undo Button with onContextMenu */}
+        {/* Undo button with right-click to reset */}
         <Button
           onClick={handleUndo}
-          onContextMenu={handleRightClickUndo}
+          onContextMenu={handleRightClickUndo}  // Right-click to reset intake
           variant="secondary"
-          className={`p-4 h-18 w-18 rounded-full shadow-lg text-white bg-gray-700 ${
-            isSpinning ? "spin-reverse-ease-in-out" : ""
-          }`}
+          className="p-4 h-16 w-16 rounded-full shadow-lg text-white bg-blue-900 hover:bg-blue-700"
           size="lg"
         >
           <RotateCcw />
         </Button>
 
-        {/* Custom Add Button */}
         <Button
           onClick={handleOpenCustomDrawer}
-          className="p-4 h-18 w-18 rounded-full shadow-lg text-white hover:bg-blue-500"
+          className="p-4 h-16 w-16 rounded-full shadow-lg text-white hover:bg-blue-500"
           size="lg"
         >
           <GlassWater />

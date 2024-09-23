@@ -17,5 +17,5 @@
 }
 
 .spin-reverse-ease-in-out {
-  animation: spin-reverse-ease-in-out 1s ease-in-out infinite;
+  animation: spin-reverse-ease-in-out 0.5s ease-in-out infinite;
 }
