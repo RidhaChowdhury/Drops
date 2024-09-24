@@ -8,97 +8,83 @@ import {
   backupData,
   loadFromCSV,
 } from "./settingsSlice";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { ContentSwitch } from "@/components/content-switch"; // Import the ContentSwitch
 import { Label } from "@/components/ui/label";
+import { Sun, Moon } from "lucide-react"; // Icons for theme switch
+import { useTheme } from "@/components/theme-provider";
 
 export default function SettingsScreen() {
   const dispatch = useDispatch();
-  const { theme, dailyIntakeGoal, measurementUnit } = useSelector(
-    (state: RootState) => state.settings
-  );
+  const { theme } = useTheme();
+  const { dailyIntakeGoal, measurementUnit } = useSelector((state: RootState) => state.settings);
 
   return (
-    <div className="p-4 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>General Settings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Theme Toggle */}
-            <div className="flex items-center space-x-4">
-              <Label className="w-24">Theme</Label>
-              <Select
-                value={theme}
-                onValueChange={(value) => dispatch(setTheme(value as "light" | "dark"))}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    <div
+      className={`relative flex flex-col items-center justify-center min-h-screen overflow-hidden font-sans ${
+        theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-black"
+      }`}
+    >
+      {/* General Settings Section */}
+      <div className="relative z-10 flex flex-col items-center w-full max-w-lg mt-8 space-y-8">
+        <div className="text-left w-full px-4 mb-4">
+          <h1 className="text-4xl font-bold">General Settings</h1>
+        </div>
 
-            {/* Measurement Unit */}
-            <div className="flex items-center space-x-4">
-              <Label className="w-24">Unit</Label>
-              <Select
-                value={measurementUnit}
-                onValueChange={(value) => dispatch(setMeasurementUnit(value as "oz" | "ml"))}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select unit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="oz">Ounces</SelectItem>
-                  <SelectItem value="ml">Milliliters</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Theme Switch */}
+        <div className="flex items-center justify-between w-full px-4">
+          <Label className="text-lg">Theme</Label>
+          <ContentSwitch
+            checked={theme === "dark"}
+            onCheckedChange={(checked) => dispatch(setTheme(checked ? "dark" : "light"))}
+            checkedContent={<Moon className="h-3 w-3" />}
+            uncheckedContent={<Sun className="h-3 w-3" />}
+          />
+        </div>
 
-            {/* Daily Intake Goal */}
-            <div className="flex items-center space-x-4">
-              <Label className="w-24">Daily Goal</Label>
-              <Input
-                type="number"
-                value={dailyIntakeGoal}
-                onChange={(e) => dispatch(setDailyIntakeGoal(Number(e.target.value)))}
-                className="w-[180px]"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Unit Switch */}
+        <div className="flex items-center justify-between w-full px-4">
+          <Label className="text-lg">Unit</Label>
+          <ContentSwitch
+            checked={measurementUnit === "ml"}
+            onCheckedChange={(checked) => dispatch(setMeasurementUnit(checked ? "ml" : "oz"))}
+            checkedContent="ml"
+            uncheckedContent="Oz"
+            
+          />
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Data Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Button variant="secondary" onClick={() => dispatch(backupData())}>
-              Backup Data
-            </Button>
-            <Button variant="secondary" onClick={() => dispatch(loadFromCSV())}>
-              Load from CSV
-            </Button>
-            <Button variant="destructive" onClick={() => dispatch(clearHistory())}>
-              Clear Full History
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Daily Intake Goal */}
+        <div className="flex items-center justify-between w-full px-4">
+          <Label className="text-lg">Daily Goal</Label>
+          <Input
+            type="number"
+            value={dailyIntakeGoal}
+            onChange={(e) => dispatch(setDailyIntakeGoal(Number(e.target.value)))}
+            className="w-[180px]"
+          />
+        </div>
+      </div>
+
+      {/* Data Management Section */}
+      <div className="relative z-10 flex flex-col items-center w-full max-w-lg mt-12 space-y-4">
+        <div className="text-left w-full px-4 mb-4">
+          <h2 className="text-3xl font-bold">Data Management</h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full px-4">
+          <Button variant="secondary" onClick={() => dispatch(backupData())}>
+            Backup Data
+          </Button>
+          <Button variant="secondary" onClick={() => dispatch(loadFromCSV())}>
+            Load from CSV
+          </Button>
+          <Button variant="destructive" onClick={() => dispatch(clearHistory())}>
+            Clear Full History
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
