@@ -28,7 +28,7 @@ export default function SettingsScreen() {
         theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-black"
       }`}
     >
-      <ScrollArea className="w-full max-w-lg mx-auto p-4 h-full">
+      <ScrollArea className="w-full max-w-lg mx-auto p-4 h-full pt-16"> {/* Added pt-16 to create space for the navbar */}
         {/* General Settings Section */}
         <div className="relative z-10 flex flex-col items-center w-full space-y-8">
           <div className="text-left w-full mb-4">
@@ -64,12 +64,15 @@ export default function SettingsScreen() {
           {/* Daily Intake Goal */}
           <div className="flex items-center justify-between w-full">
             <Label className="text-lg">Daily Goal</Label>
-            <Input
-              type="number"
-              value={dailyIntakeGoal}
-              onChange={(e) => dispatch(setDailyIntakeGoal(Number(e.target.value)))}
-              className="w-[180px]"
-            />
+            <div className="flex items-center">
+              <Input
+                type="number"
+                value={dailyIntakeGoal}
+                onChange={(e) => dispatch(setDailyIntakeGoal(Number(e.target.value)))}
+                className="w-[100px]" // Narrower input box
+              />
+              <span className="ml-2">{measurementUnit === "ml" ? "ml" : "oz"}</span> {/* Display unit */}
+            </div>
           </div>
 
           <Separator className="my-4" />

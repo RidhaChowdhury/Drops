@@ -28,7 +28,23 @@ const ContentSwitch = React.forwardRef<
           : "text-base"
       )}
     >
-      {props.checked ? checkedContent : uncheckedContent}
+      {/* Wrapping the checked and unchecked content in spans to apply rotation */}
+      <span
+        className={cn(
+          "absolute transition-transform duration-300",
+          props.checked ? "rotate-0 scale-100" : "rotate-90 scale-0"
+        )}
+      >
+        {checkedContent}
+      </span>
+      <span
+        className={cn(
+          "absolute transition-transform duration-300",
+          props.checked ? "rotate-90 scale-0" : "rotate-0 scale-100"
+        )}
+      >
+        {uncheckedContent}
+      </span>
     </SwitchPrimitives.Thumb>
   </SwitchPrimitives.Root>
 ));

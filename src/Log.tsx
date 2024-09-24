@@ -147,9 +147,9 @@ export default function Log({ isActive }: { isActive: boolean }) {
         <Droplet className='h-6 w-6'/>
       </div>
 
-      <div className="absolute top-4 right-4 z-10">
+      {/* <div className="absolute top-4 right-4 z-10">
         <ModeToggle />
-      </div>
+      </div> */}
 
       {/* Water Progress Wave */}
       <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
