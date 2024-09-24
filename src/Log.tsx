@@ -154,14 +154,56 @@ export default function Log({ isActive }: { isActive: boolean }) {
       {/* Water Progress Wave */}
       <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
         <div className="relative w-full" style={{ height: "105%" }}>
+          
+          {/* Background Wave */}
           <Wave
-            fill={theme === "dark" ? "#1E3A8A" : "#3B82F6"}
+            fill={theme === "dark" ? "#153366" : "#1E40AF"} // Darker background wave
+            paused={false}
+            options={{
+              height: 15,
+              amplitude: 14, // Larger amplitude
+              speed: 0.15, // Slowest speed for background
+              points: 6,
+            }}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: "100%",
+              height: `${(waterIntake / dailyGoal) * 100 + 12}%`, // Taller
+              transition: "height 0.5s ease",
+              zIndex: 0, // Background
+            }}
+          />
+
+          {/* Middle Wave */}
+          <Wave
+            fill={theme === "dark" ? "#17377A" : "#2563EB"} // Slightly lighter than background
+            paused={false}
+            options={{
+              height: 13,
+              amplitude: 12,
+              speed: 0.2,
+              points: 5,
+            }}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: "100%",
+              height: `${(waterIntake / dailyGoal) * 100 + 10}%`,
+              transition: "height 0.5s ease",
+              zIndex: 1, // Middle
+            }}
+          />
+
+          {/* Foreground Wave */}
+          <Wave
+            fill={theme === "dark" ? "#1E3A8A" : "#3B82F6"} // Foreground color
             paused={false}
             options={{
               height: 10,
-              amplitude: 15,
-              speed: 0.15,
-              points: 4,
+              amplitude: 10,
+              speed: 0.3, // Fastest for the foreground
+              points: 8,
             }}
             style={{
               position: "absolute",
@@ -169,10 +211,32 @@ export default function Log({ isActive }: { isActive: boolean }) {
               width: "100%",
               height: `${(waterIntake / dailyGoal) * 100 + 5}%`,
               transition: "height 0.5s ease",
+              zIndex: 2, // Foreground
             }}
           />
+
+          {/* Third Wave (Foreground Accent Wave) */}
+          {/* <Wave
+            fill={theme === "dark" ? "#264084" : "#4F46E5"} // Accent color for a third wave
+            paused={false}
+            options={{
+              height: 8, // Smallest wave height
+              amplitude: 8, // Subtle wave
+              speed: 0.4, // Fastest for the accent
+              points: 10, // More points for a sharper look
+            }}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: "100%",
+              height: `${(waterIntake / dailyGoal) * 100 + 3}%`, // Slightly lower
+              transition: "height 0.5s ease",
+              zIndex: 3, // Top layer
+            }}
+          /> */}
         </div>
       </div>
+
 
       <div className="relative z-10 flex flex-col items-center">
         <div className="mb-10 text-center">

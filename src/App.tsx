@@ -77,7 +77,7 @@ export default function App() {
         {/* Centered Tab Bar */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <div className="fixed top-4 left-1/2 transform -translate-x-1/2">
-            <TabsList className="flex justify-center space-x-4 bg-gray-800 text-white p-3 rounded-full">
+            <TabsList className="flex justify-center space-x-4 bg-gray-800 text-white p-3 rounded-full shadow-lg">
               {tabs.map((tab) => (
                 <TabsTrigger
                   key={tab.value}
