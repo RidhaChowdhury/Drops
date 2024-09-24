@@ -1,29 +1,29 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface SettingsState {
-  theme: 'light' | 'dark';
   dailyIntakeGoal: number;
   measurementUnit: 'oz' | 'ml';
+  notificationsEnabled: boolean;  // New notification state
 }
 
 const initialState: SettingsState = {
-  theme: 'dark',
   dailyIntakeGoal: 150,
   measurementUnit: 'oz',
+  notificationsEnabled: false,  // Notifications default to disabled
 };
 
 const settingsSlice = createSlice({
   name: 'settings',
   initialState,
   reducers: {
-    setTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
-      state.theme = action.payload;
-    },
     setDailyIntakeGoal: (state, action: PayloadAction<number>) => {
       state.dailyIntakeGoal = action.payload;
     },
     setMeasurementUnit: (state, action: PayloadAction<'oz' | 'ml'>) => {
       state.measurementUnit = action.payload;
+    },
+    setNotificationsEnabled: (state, action: PayloadAction<boolean>) => {
+      state.notificationsEnabled = action.payload;  // New reducer for notifications
     },
     clearHistory: (state) => {
       // Placeholder for clearing history logic
@@ -37,7 +37,13 @@ const settingsSlice = createSlice({
   },
 });
 
-export const { setTheme, setDailyIntakeGoal, setMeasurementUnit, clearHistory, backupData, loadFromCSV } = 
-  settingsSlice.actions;
+export const { 
+  setDailyIntakeGoal, 
+  setMeasurementUnit, 
+  setNotificationsEnabled,  // New notification action
+  clearHistory, 
+  backupData, 
+  loadFromCSV 
+} = settingsSlice.actions;
 
 export default settingsSlice.reducer;
