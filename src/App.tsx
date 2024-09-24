@@ -63,7 +63,7 @@ export default function App() {
           >
             {/* Individual screens */}
             <div className="w-full min-h-screen absolute top-0 left-0">
-              <Log />
+              <Log isActive={selectedTab === "water"} />
             </div>
             <div className="w-full min-h-screen absolute top-0 left-full">
               <Metrics />
@@ -76,7 +76,7 @@ export default function App() {
 
         {/* Centered Tab Bar */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2">
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2">
             <TabsList className="flex justify-center space-x-4 bg-gray-800 text-white p-3 rounded-full">
               {tabs.map((tab) => (
                 <TabsTrigger

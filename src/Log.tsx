@@ -8,10 +8,10 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "./components/ui/drawer";
-import { Minus, Plus, GlassWater, RotateCcw } from "lucide-react";
+import { Minus, Plus, GlassWater, RotateCcw, Droplet } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { ModeToggle } from "./components/mode-toggle";
-import Wave from 'react-wavify';  // Import the Wave component
+import Wave from "react-wavify"; // Import the Wave component
 
 // Define the types for water history entries
 type WaterEntry = {
@@ -21,11 +21,12 @@ type WaterEntry = {
 };
 
 // Utility functions
-const getCurrentDate = (): string => new Date().toISOString().split('T')[0];
-const getWaterHistory = (): WaterEntry[] => JSON.parse(localStorage.getItem('waterHistory') || '[]');
-const saveWaterHistory = (history: WaterEntry[]): void => localStorage.setItem('waterHistory', JSON.stringify(history));
+const getCurrentDate = (): string => new Date().toISOString().split("T")[0];
+const getWaterHistory = (): WaterEntry[] => JSON.parse(localStorage.getItem("waterHistory") || "[]");
+const saveWaterHistory = (history: WaterEntry[]): void =>
+  localStorage.setItem("waterHistory", JSON.stringify(history));
 
-export default function Log() {
+export default function Log({ isActive }: { isActive: boolean }) {
   const { theme } = useTheme();
   const dailyGoal = 150;
   const currentDate = getCurrentDate();
@@ -35,12 +36,27 @@ export default function Log() {
   const [waterIntake, setWaterIntake] = useState<number>(todayEntry ? todayEntry.intake : 0);
   const [drinkLog, setDrinkLog] = useState<number[]>(todayEntry && todayEntry.drinkLog ? todayEntry.drinkLog : []);
 
-  const [quickAddValues, setQuickAddValues] = useState<number[]>(() => JSON.parse(localStorage.getItem('quickAddValues') || '[8, 16]'));
+  const [quickAddValues, setQuickAddValues] = useState<number[]>(() =>
+    JSON.parse(localStorage.getItem("quickAddValues") || "[8, 16]")
+  );
   const [isQuickAddDrawerOpen, setIsQuickAddDrawerOpen] = useState(false);
   const [isCustomDrawerOpen, setIsCustomDrawerOpen] = useState(false);
   const [currentButton, setCurrentButton] = useState<number | null>(null);
   const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [showFABs, setShowFABs] = useState(false); // State to control FAB animation
+
+  // Toggle FAB visibility based on the active state of the Log page
+  useEffect(() => {
+    if (isActive) {
+      // Fade in the FABs when the Log page is active
+      const timeout = setTimeout(() => setShowFABs(true), 100);
+      return () => clearTimeout(timeout);
+    } else {
+      // Fade out the FABs when the Log page is not active
+      setShowFABs(false);
+    }
+  }, [isActive]);
 
   useEffect(() => {
     const updatedHistory = waterHistory.filter((entry: WaterEntry) => entry.date !== currentDate);
@@ -128,16 +144,16 @@ export default function Log() {
       }`}
     >
       <div className="absolute top-6 left-6 z-10">
-        <h2 className="text-3xl font-semibold">Hydrated{waterIntake < dailyGoal ? "?" : "!"}</h2>
+        <Droplet className='h-6 w-6'/>
       </div>
 
-      <div className="absolute top-6 right-6 z-10">
+      <div className="absolute top-4 right-4 z-10">
         <ModeToggle />
       </div>
 
       {/* Water Progress Wave */}
       <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
-        <div className="relative w-full" style={{ height: '105%' }}>
+        <div className="relative w-full" style={{ height: "105%" }}>
           <Wave
             fill={theme === "dark" ? "#1E3A8A" : "#3B82F6"}
             paused={false}
@@ -148,11 +164,11 @@ export default function Log() {
               points: 4,
             }}
             style={{
-              position: 'absolute',
+              position: "absolute",
               bottom: 0,
-              width: '100%',
-              height: `${((waterIntake / dailyGoal) * 100)+5}%`,
-              transition: 'height 0.5s ease',
+              width: "100%",
+              height: `${(waterIntake / dailyGoal) * 100 + 5}%`,
+              transition: "height 0.5s ease",
             }}
           />
         </div>
@@ -164,16 +180,18 @@ export default function Log() {
         </div>
 
         <div className="flex flex-wrap justify-center gap-6 mb-8">
-          {[...quickAddValues].sort((a, b) => a - b).map((value, index) => (
-            <Button
-              key={index}
-              onClick={() => handleAddWater(value)}
-              onContextMenu={(e) => handleRightClickQuickAdd(e, index)} // Right-click to edit
-              className="px-6 py-4 rounded-2xl text-2xl h-16 w-20"
-            >
-              {value} oz
-            </Button>
-          ))}
+          {[...quickAddValues]
+            .sort((a, b) => a - b)
+            .map((value, index) => (
+              <Button
+                key={index}
+                onClick={() => handleAddWater(value)}
+                onContextMenu={(e) => handleRightClickQuickAdd(e, index)} // Right-click to edit
+                className="px-6 py-4 rounded-2xl text-2xl h-16 w-20"
+              >
+                {value} oz
+              </Button>
+            ))}
           <Button
             onClick={handleAddNewQuickAdd}
             variant="secondary"
@@ -184,13 +202,20 @@ export default function Log() {
         </div>
       </div>
 
-      <div className="fixed bottom-8 right-8 z-20 flex space-x-4">
-        {/* Undo button with right-click to reset */}
+      {/* Floating Action Buttons (FABs) */}
+      <div
+        className={`fixed bottom-8 right-8 z-20 flex space-x-4 transform ${
+          showFABs ? "opacity-100 translate-y-0" : "opacity-0 translate-x-10"
+        } transition-all ${
+          isActive ? "duration-500 delay-200" : "duration-200"
+        }`}
+      >
+
         <Button
           onClick={handleUndo}
-          onContextMenu={handleRightClickUndo}  // Right-click to reset intake
+          onContextMenu={handleRightClickUndo} // Right-click to reset intake
           variant="secondary"
-          className="p-4 h-16 w-16 rounded-full shadow-lg text-white bg-blue-900 hover:bg-blue-700"
+          className="p-4 h-16 w-16 rounded-full shadow-lg text-white bg-gray-700"
           size="lg"
         >
           <RotateCcw />
@@ -198,7 +223,7 @@ export default function Log() {
 
         <Button
           onClick={handleOpenCustomDrawer}
-          className="p-4 h-16 w-16 rounded-full shadow-lg text-white hover:bg-blue-500"
+          className="p-4 h-16 w-16 rounded-full shadow-lg text-white"
           size="lg"
         >
           <GlassWater />
@@ -262,7 +287,11 @@ export default function Log() {
               </Button>
             )}
             <DrawerClose asChild>
-              <Button variant="outline" onClick={() => setIsQuickAddDrawerOpen(false)} className="px-6 py-3 rounded-xl text-xl">
+              <Button
+                variant="outline"
+                onClick={() => setIsQuickAddDrawerOpen(false)}
+                className="px-6 py-3 rounded-xl text-xl"
+              >
                 Cancel
               </Button>
             </DrawerClose>
@@ -316,7 +345,11 @@ export default function Log() {
               Add
             </Button>
             <DrawerClose asChild>
-              <Button variant="outline" onClick={() => setIsCustomDrawerOpen(false)} className="px-6 py-3 rounded-xl text-xl">
+              <Button
+                variant="outline"
+                onClick={() => setIsCustomDrawerOpen(false)}
+                className="px-6 py-3 rounded-xl text-xl"
+              >
                 Cancel
               </Button>
             </DrawerClose>
