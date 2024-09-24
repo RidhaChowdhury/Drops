@@ -12,6 +12,8 @@ import { Minus, Plus, GlassWater, RotateCcw, Droplet } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { ModeToggle } from "./components/mode-toggle";
 import Wave from "react-wavify"; // Import the Wave component
+import { useSelector } from "react-redux";
+import { RootState } from "./store"; // Import your Redux RootState type
 
 // Define the types for water history entries
 type WaterEntry = {
@@ -28,7 +30,10 @@ const saveWaterHistory = (history: WaterEntry[]): void =>
 
 export default function Log({ isActive }: { isActive: boolean }) {
   const { theme } = useTheme();
-  const dailyGoal = 150;
+
+  // Fetch daily intake goal from Redux state
+  const dailyGoal = useSelector((state: RootState) => state.settings.dailyIntakeGoal);
+
   const currentDate = getCurrentDate();
   const waterHistory: WaterEntry[] = getWaterHistory();
 
@@ -49,11 +54,9 @@ export default function Log({ isActive }: { isActive: boolean }) {
   // Toggle FAB visibility based on the active state of the Log page
   useEffect(() => {
     if (isActive) {
-      // Fade in the FABs when the Log page is active
       const timeout = setTimeout(() => setShowFABs(true), 100);
       return () => clearTimeout(timeout);
     } else {
-      // Fade out the FABs when the Log page is not active
       setShowFABs(false);
     }
   }, [isActive]);
@@ -64,9 +67,8 @@ export default function Log({ isActive }: { isActive: boolean }) {
     saveWaterHistory(updatedHistory);
   }, [waterIntake, drinkLog, currentDate]);
 
-  // Handle quick add button right-click (context menu) to edit
   const handleRightClickQuickAdd = (e: React.MouseEvent, index: number) => {
-    e.preventDefault(); // Prevent default context menu
+    e.preventDefault();
     setCurrentButton(index);
     setNewQuickAddValue(quickAddValues[index]);
     setIsAddingNew(false);
@@ -97,25 +99,23 @@ export default function Log({ isActive }: { isActive: boolean }) {
     setIsQuickAddDrawerOpen(false);
   };
 
-  // Undo water intake
   const handleUndo = () => {
     if (drinkLog.length > 0) {
       const lastDrink = drinkLog[drinkLog.length - 1];
       setWaterIntake((prev) => Math.max(0, prev - lastDrink));
-      setDrinkLog((prev) => prev.slice(0, -1)); // Remove the last drink from the log
+      setDrinkLog((prev) => prev.slice(0, -1));
     }
   };
 
-  // Reset all water intake when right-clicking (context menu) on the undo button
   const handleRightClickUndo = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default context menu
+    e.preventDefault();
     setWaterIntake(0);
-    setDrinkLog([]); // Clear the log
+    setDrinkLog([]);
   };
 
   const handleAddWater = (amount: number) => {
     setWaterIntake((prev) => prev + amount);
-    setDrinkLog((prev) => [...prev, amount]); // Log each drink for undo functionality
+    setDrinkLog((prev) => [...prev, amount]);
   };
 
   const handleOpenCustomDrawer = () => {
@@ -154,36 +154,33 @@ export default function Log({ isActive }: { isActive: boolean }) {
       {/* Water Progress Wave */}
       <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
         <div className="relative w-full" style={{ height: "105%" }}>
-          
-          {/* Background Wave */}
           <Wave
-            fill={theme === "dark" ? "#153366" : "#1E40AF"} // Darker background wave
+            fill={theme === "dark" ? "#153366" : "#1E40AF"}
             paused={false}
             options={{
-              height: 15,
-              amplitude: 14, // Larger amplitude
-              speed: 0.15, // Slowest speed for background
-              points: 6,
+              height: 10,
+              amplitude: 14,
+              speed: 0.15,
+              points: 2,
             }}
             style={{
               position: "absolute",
               bottom: 0,
               width: "100%",
-              height: `${(waterIntake / dailyGoal) * 100 + 12}%`, // Taller
+              height: `${(waterIntake / dailyGoal) * 100 + 12}%`,
               transition: "height 0.5s ease",
-              zIndex: 0, // Background
+              zIndex: 0,
             }}
           />
 
-          {/* Middle Wave */}
           <Wave
-            fill={theme === "dark" ? "#17377A" : "#2563EB"} // Slightly lighter than background
+            fill={theme === "dark" ? "#17377A" : "#2563EB"}
             paused={false}
             options={{
-              height: 13,
+              height: 10,
               amplitude: 12,
               speed: 0.2,
-              points: 5,
+              points: 3,
             }}
             style={{
               position: "absolute",
@@ -191,52 +188,30 @@ export default function Log({ isActive }: { isActive: boolean }) {
               width: "100%",
               height: `${(waterIntake / dailyGoal) * 100 + 10}%`,
               transition: "height 0.5s ease",
-              zIndex: 1, // Middle
+              zIndex: 1,
             }}
           />
 
-          {/* Foreground Wave */}
           <Wave
-            fill={theme === "dark" ? "#1E3A8A" : "#3B82F6"} // Foreground color
+            fill={theme === "dark" ? "#1E3A8A" : "#3B82F6"}
             paused={false}
             options={{
               height: 10,
               amplitude: 10,
-              speed: 0.3, // Fastest for the foreground
-              points: 8,
+              speed: 0.3,
+              points: 5,
             }}
             style={{
               position: "absolute",
               bottom: 0,
               width: "100%",
-              height: `${(waterIntake / dailyGoal) * 100 + 5}%`,
+              height: `${(waterIntake / dailyGoal) * 100 + 8}%`,
               transition: "height 0.5s ease",
-              zIndex: 2, // Foreground
+              zIndex: 2,
             }}
           />
-
-          {/* Third Wave (Foreground Accent Wave) */}
-          {/* <Wave
-            fill={theme === "dark" ? "#264084" : "#4F46E5"} // Accent color for a third wave
-            paused={false}
-            options={{
-              height: 8, // Smallest wave height
-              amplitude: 8, // Subtle wave
-              speed: 0.4, // Fastest for the accent
-              points: 10, // More points for a sharper look
-            }}
-            style={{
-              position: "absolute",
-              bottom: 0,
-              width: "100%",
-              height: `${(waterIntake / dailyGoal) * 100 + 3}%`, // Slightly lower
-              transition: "height 0.5s ease",
-              zIndex: 3, // Top layer
-            }}
-          /> */}
         </div>
       </div>
-
 
       <div className="relative z-10 flex flex-col items-center">
         <div className="mb-10 text-center">
@@ -250,7 +225,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
               <Button
                 key={index}
                 onClick={() => handleAddWater(value)}
-                onContextMenu={(e) => handleRightClickQuickAdd(e, index)} // Right-click to edit
+                onContextMenu={(e) => handleRightClickQuickAdd(e, index)}
                 className="px-6 py-4 rounded-2xl text-2xl h-16 w-20"
               >
                 {value} oz
@@ -266,7 +241,6 @@ export default function Log({ isActive }: { isActive: boolean }) {
         </div>
       </div>
 
-      {/* Floating Action Buttons (FABs) */}
       <div
         className={`fixed bottom-8 right-8 z-20 flex space-x-4 transform ${
           showFABs ? "opacity-100 translate-y-0" : "opacity-0 translate-x-10"
@@ -274,10 +248,9 @@ export default function Log({ isActive }: { isActive: boolean }) {
           isActive ? "duration-500 delay-200" : "duration-200"
         }`}
       >
-
         <Button
           onClick={handleUndo}
-          onContextMenu={handleRightClickUndo} // Right-click to reset intake
+          onContextMenu={handleRightClickUndo}
           variant="secondary"
           className="p-4 h-16 w-16 rounded-full shadow-lg text-white bg-gray-700"
           size="lg"
@@ -294,7 +267,6 @@ export default function Log({ isActive }: { isActive: boolean }) {
         </Button>
       </div>
 
-      {/* Quick Add Drawer */}
       <Drawer open={isQuickAddDrawerOpen} onClose={() => setIsQuickAddDrawerOpen(false)}>
         <DrawerContent className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
           <DrawerHeader>
@@ -363,7 +335,6 @@ export default function Log({ isActive }: { isActive: boolean }) {
         </DrawerContent>
       </Drawer>
 
-      {/* Custom Amount Drawer */}
       <Drawer open={isCustomDrawerOpen} onClose={() => setIsCustomDrawerOpen(false)}>
         <DrawerContent className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
           <DrawerHeader>
