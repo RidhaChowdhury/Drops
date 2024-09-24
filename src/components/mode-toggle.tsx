@@ -20,12 +20,12 @@ export function ModeToggle() {
     >
       {/* Smooth transition between Sun and Moon icons */}
       <Sun
-        className={`h-[1.2rem] w-[1.2rem] transition-transform duration-300 ${
+        className={`h-6 w-6 transition-transform duration-300 ${
           theme === "dark" ? "rotate-90 scale-0" : "rotate-0 scale-100"
         }`}
       />
       <Moon
-        className={`absolute h-[1.2rem] w-[1.2rem] transition-transform duration-300 ${
+        className={`absolute h-6 w-6 transition-transform duration-300 ${
           theme === "dark" ? "rotate-0 scale-100 text-white" : "rotate-90 scale-0"
         }`}
       />
