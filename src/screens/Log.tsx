@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/base-ui/button";
 import { Plus, Droplet } from "lucide-react"; // Removed Minus
-import { useTheme } from "@/components/theme-provider";
+import { useTheme } from "@/hooks/theme-provider";
 import Wave from "react-wavify";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";

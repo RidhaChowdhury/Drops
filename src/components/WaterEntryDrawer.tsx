@@ -3,7 +3,7 @@
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "./base-ui/drawer";
 import { Button } from "./base-ui/button";
 import { Minus, Plus } from "lucide-react";
-import { useTheme } from "@/components/theme-provider";
+import { useTheme } from "@/hooks/theme-provider";
 
 type WaterEntryDrawerProps = {
    isOpen: boolean;
