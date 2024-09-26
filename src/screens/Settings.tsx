@@ -9,15 +9,15 @@ import {
   loadFromCSV,
 } from "../settingsSlice";
 import { convertFromOunces, convertToOunces } from '../utils/conversionUtils';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/base-ui/button";
+import { Input } from "@/components/base-ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/base-ui/select"; // Import Select components
+import { Label } from "@/components/base-ui/label";
 import { Sun, Moon, Bell, BellOff, FileDown, FileUp, Bomb } from "lucide-react"; // Icons for theme and notifications
 import { useTheme } from "@/components/theme-provider";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { ContentSwitch } from "@/components/content-switch"; // Assuming you're using ContentSwitch now
+import { ScrollArea } from "@/components/base-ui/scroll-area";
+import { Separator } from "@/components/base-ui/separator";
+import { ContentSwitch } from "@/components/extended-ui/content-switch"; // Assuming you're using ContentSwitch now
 
 export default function SettingsScreen() {
   const dispatch = useDispatch();
