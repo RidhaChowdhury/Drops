@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface SettingsState {
   dailyIntakeGoal: number;
-  measurementUnit: 'oz' | 'ml';
+  measurementUnit: 'oz' | 'mL' | 'L' | 'cups'; // Added all unit types
   notificationsEnabled: boolean;  // New notification state
 }
 
@@ -19,7 +19,7 @@ const settingsSlice = createSlice({
     setDailyIntakeGoal: (state, action: PayloadAction<number>) => {
       state.dailyIntakeGoal = action.payload;
     },
-    setMeasurementUnit: (state, action: PayloadAction<'oz' | 'ml'>) => {
+    setMeasurementUnit: (state, action: PayloadAction<'oz' | 'mL' | 'L' | 'cups'>) => {
       state.measurementUnit = action.payload;
     },
     setNotificationsEnabled: (state, action: PayloadAction<boolean>) => {

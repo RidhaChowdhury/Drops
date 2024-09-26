@@ -10,7 +10,6 @@ import {
 } from "./components/ui/drawer";
 import { Minus, Plus, GlassWater, RotateCcw, Droplet } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
-import { ModeToggle } from "./components/mode-toggle";
 import Wave from "react-wavify"; // Import the Wave component
 import { useSelector } from "react-redux";
 import { RootState } from "./store"; // Import your Redux RootState type
@@ -28,12 +27,35 @@ const getWaterHistory = (): WaterEntry[] => JSON.parse(localStorage.getItem("wat
 const saveWaterHistory = (history: WaterEntry[]): void =>
   localStorage.setItem("waterHistory", JSON.stringify(history));
 
+// Conversion utility functions
+const convertFromOunces = (oz: number, unit: "oz" | "mL" | "L" | "cups"): number => {
+  const conversionRates = {
+    oz: 1,
+    mL: 29.5735,
+    L: 0.0295735,
+    cups: 0.125,
+    gallons: 0.0078125,
+    pints: 0.0625,
+  };
+  return oz * conversionRates[unit];
+};
+
+const convertToOunces = (amount: number, unit: "oz" | "mL" | "L" | "cups"): number => {
+  const conversionRates = {
+    oz: 1,
+    mL: 1 / 29.5735,
+    L: 1 / 0.0295735,
+    cups: 1 / 0.125,
+    gallons: 1 / 0.0078125,
+    pints: 1 / 0.0625,
+  };
+  return amount * conversionRates[unit];
+};
+
 export default function Log({ isActive }: { isActive: boolean }) {
   const { theme } = useTheme();
-
-  // Fetch daily intake goal from Redux state
   const dailyGoal = useSelector((state: RootState) => state.settings.dailyIntakeGoal);
-
+  const measurementUnit = useSelector((state: RootState) => state.settings.measurementUnit); // Get the selected unit from Redux
   const currentDate = getCurrentDate();
   const waterHistory: WaterEntry[] = getWaterHistory();
 
@@ -49,7 +71,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
   const [currentButton, setCurrentButton] = useState<number | null>(null);
   const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [showFABs, setShowFABs] = useState(false); // State to control FAB animation
+  const [showFABs, setShowFABs] = useState(false);
 
   // Toggle FAB visibility based on the active state of the Log page
   useEffect(() => {
@@ -70,7 +92,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
   const handleRightClickQuickAdd = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
     setCurrentButton(index);
-    setNewQuickAddValue(quickAddValues[index]);
+    setNewQuickAddValue(convertFromOunces(quickAddValues[index], measurementUnit)); // Convert the quick add value for editing
     setIsAddingNew(false);
     setIsQuickAddDrawerOpen(true);
   };
@@ -82,12 +104,13 @@ export default function Log({ isActive }: { isActive: boolean }) {
   };
 
   const handleSaveQuickAdd = () => {
+    const newQuickAddValueInOz = convertToOunces(newQuickAddValue, measurementUnit); // Convert to ounces for storage
     if (isAddingNew) {
-      const updatedQuickAddValues = [...quickAddValues, Math.max(1, newQuickAddValue)];
+      const updatedQuickAddValues = [...quickAddValues, Math.max(1, newQuickAddValueInOz)];
       setQuickAddValues(updatedQuickAddValues);
     } else if (currentButton !== null) {
       const newValues = [...quickAddValues];
-      newValues[currentButton] = Math.max(1, newQuickAddValue);
+      newValues[currentButton] = Math.max(1, newQuickAddValueInOz);
       setQuickAddValues(newValues);
     }
     setIsQuickAddDrawerOpen(false);
@@ -114,8 +137,9 @@ export default function Log({ isActive }: { isActive: boolean }) {
   };
 
   const handleAddWater = (amount: number) => {
-    setWaterIntake((prev) => prev + amount);
-    setDrinkLog((prev) => [...prev, amount]);
+    const amountInOz = convertToOunces(amount, measurementUnit); // Convert to ounces
+    setWaterIntake((prev) => prev + amountInOz);
+    setDrinkLog((prev) => [...prev, amountInOz]);
   };
 
   const handleOpenCustomDrawer = () => {
@@ -137,6 +161,10 @@ export default function Log({ isActive }: { isActive: boolean }) {
     setNewQuickAddValue(Math.max(1, newQuickAddValue));
   };
 
+  // Convert the intake and goal to the selected unit
+  const displayedIntake = convertFromOunces(waterIntake, measurementUnit);
+  const displayedGoal = convertFromOunces(dailyGoal, measurementUnit);
+
   return (
     <div
       className={`relative flex flex-col items-center justify-center min-h-screen overflow-hidden font-sans ${
@@ -146,10 +174,6 @@ export default function Log({ isActive }: { isActive: boolean }) {
       <div className="absolute top-6 left-6 z-10">
         <Droplet className='h-6 w-6'/>
       </div>
-
-      {/* <div className="absolute top-4 right-4 z-10">
-        <ModeToggle />
-      </div> */}
 
       {/* Water Progress Wave */}
       <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
@@ -167,7 +191,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
               position: "absolute",
               bottom: 0,
               width: "100%",
-              height: `${(waterIntake / dailyGoal) * 100 + 12}%`,
+              height: `${(displayedIntake / displayedGoal) * 100 + 12}%`,
               transition: "height 0.5s ease",
               zIndex: 0,
             }}
@@ -215,22 +239,28 @@ export default function Log({ isActive }: { isActive: boolean }) {
 
       <div className="relative z-10 flex flex-col items-center">
         <div className="mb-10 text-center">
-          <p className="text-8xl font-bold mt-4">{waterIntake} oz</p>
+          {/* Display water intake with the selected unit */}
+          <p className="text-8xl font-bold mt-4 flex items-baseline justify-center">
+            <span>{displayedIntake.toFixed(1)}</span>{" "}
+            <span className="text-4xl ml-2">{measurementUnit}</span>
+          </p>
         </div>
 
         <div className="flex flex-wrap justify-center gap-6 mb-8">
-          {[...quickAddValues]
-            .sort((a, b) => a - b)
-            .map((value, index) => (
-              <Button
-                key={index}
-                onClick={() => handleAddWater(value)}
-                onContextMenu={(e) => handleRightClickQuickAdd(e, index)}
-                className="px-6 py-4 rounded-2xl text-2xl h-16 w-20"
-              >
-                {value} oz
-              </Button>
-            ))}
+        {[...quickAddValues]
+          .sort((a, b) => a - b)
+          .map((value, index) => (
+          <Button
+            key={index}
+            onClick={() => handleAddWater(convertFromOunces(value, measurementUnit))}
+            onContextMenu={(e) => handleRightClickQuickAdd(e, index)}
+            className="px-6 py-4 rounded-2xl text-2xl h-16 min-w-20 flex items-baseline justify-center"
+          >
+            <span className="text-2xl">{convertFromOunces(value, measurementUnit).toFixed(1)}</span>{" "}
+            <span className="text-base ml-1">{measurementUnit}</span>
+          </Button>
+          ))}
+
           <Button
             onClick={handleAddNewQuickAdd}
             variant="secondary"
