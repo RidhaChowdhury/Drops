@@ -160,10 +160,6 @@ export default function Log({ isActive }: { isActive: boolean }) {
       <div
          className={`relative flex flex-col items-center justify-center min-h-screen overflow-hidden font-sans ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}
       >
-         <div className="absolute top-6 left-6 z-10">
-            <Droplet className="h-6 w-6" />
-         </div>
-
          {/* Stacked Waves */}
          <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
             <div className="relative w-full" style={{ height: '105%' }}>
