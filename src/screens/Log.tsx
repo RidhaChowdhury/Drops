@@ -44,14 +44,11 @@ export default function Log({ isActive }: { isActive: boolean }) {
    const [isAddingNew, setIsAddingNew] = useState(false);
    const [showFABs, setShowFABs] = useState(false);
 
-   const [isLongPress, setIsLongPress] = useState(false);
    const [longPressTimeout, setLongPressTimeout] = useState<NodeJS.Timeout | null>(null);
 
    // Define your long press handlers
    const handleMouseDown = (index: number) => {
-      setIsLongPress(false);
       const timeout = setTimeout(() => {
-         setIsLongPress(true);
          handleLongPressQuickAdd(index);
       }, 500);
 
