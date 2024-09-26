@@ -10,9 +10,8 @@ import {
 } from "./components/ui/drawer";
 import { Minus, Plus, GlassWater, RotateCcw, Droplet } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
+import { ModeToggle } from "./components/mode-toggle";
 import Wave from "react-wavify"; // Import the Wave component
-import { useSelector } from "react-redux";
-import { RootState } from "./store"; // Import your Redux RootState type
 
 // Define the types for water history entries
 type WaterEntry = {
@@ -27,35 +26,9 @@ const getWaterHistory = (): WaterEntry[] => JSON.parse(localStorage.getItem("wat
 const saveWaterHistory = (history: WaterEntry[]): void =>
   localStorage.setItem("waterHistory", JSON.stringify(history));
 
-// Conversion utility functions
-const convertFromOunces = (oz: number, unit: "oz" | "mL" | "L" | "cups"): number => {
-  const conversionRates = {
-    oz: 1,
-    mL: 29.5735,
-    L: 0.0295735,
-    cups: 0.125,
-    gallons: 0.0078125,
-    pints: 0.0625,
-  };
-  return oz * conversionRates[unit];
-};
-
-const convertToOunces = (amount: number, unit: "oz" | "mL" | "L" | "cups"): number => {
-  const conversionRates = {
-    oz: 1,
-    mL: 1 / 29.5735,
-    L: 1 / 0.0295735,
-    cups: 1 / 0.125,
-    gallons: 1 / 0.0078125,
-    pints: 1 / 0.0625,
-  };
-  return amount * conversionRates[unit];
-};
-
 export default function Log({ isActive }: { isActive: boolean }) {
   const { theme } = useTheme();
-  const dailyGoal = useSelector((state: RootState) => state.settings.dailyIntakeGoal);
-  const measurementUnit = useSelector((state: RootState) => state.settings.measurementUnit); // Get the selected unit from Redux
+  const dailyGoal = 150;
   const currentDate = getCurrentDate();
   const waterHistory: WaterEntry[] = getWaterHistory();
 
@@ -71,14 +44,16 @@ export default function Log({ isActive }: { isActive: boolean }) {
   const [currentButton, setCurrentButton] = useState<number | null>(null);
   const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [showFABs, setShowFABs] = useState(false);
+  const [showFABs, setShowFABs] = useState(false); // State to control FAB animation
 
   // Toggle FAB visibility based on the active state of the Log page
   useEffect(() => {
     if (isActive) {
+      // Fade in the FABs when the Log page is active
       const timeout = setTimeout(() => setShowFABs(true), 100);
       return () => clearTimeout(timeout);
     } else {
+      // Fade out the FABs when the Log page is not active
       setShowFABs(false);
     }
   }, [isActive]);
@@ -89,10 +64,11 @@ export default function Log({ isActive }: { isActive: boolean }) {
     saveWaterHistory(updatedHistory);
   }, [waterIntake, drinkLog, currentDate]);
 
+  // Handle quick add button right-click (context menu) to edit
   const handleRightClickQuickAdd = (e: React.MouseEvent, index: number) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default context menu
     setCurrentButton(index);
-    setNewQuickAddValue(convertFromOunces(quickAddValues[index], measurementUnit)); // Convert the quick add value for editing
+    setNewQuickAddValue(quickAddValues[index]);
     setIsAddingNew(false);
     setIsQuickAddDrawerOpen(true);
   };
@@ -104,13 +80,12 @@ export default function Log({ isActive }: { isActive: boolean }) {
   };
 
   const handleSaveQuickAdd = () => {
-    const newQuickAddValueInOz = convertToOunces(newQuickAddValue, measurementUnit); // Convert to ounces for storage
     if (isAddingNew) {
-      const updatedQuickAddValues = [...quickAddValues, Math.max(1, newQuickAddValueInOz)];
+      const updatedQuickAddValues = [...quickAddValues, Math.max(1, newQuickAddValue)];
       setQuickAddValues(updatedQuickAddValues);
     } else if (currentButton !== null) {
       const newValues = [...quickAddValues];
-      newValues[currentButton] = Math.max(1, newQuickAddValueInOz);
+      newValues[currentButton] = Math.max(1, newQuickAddValue);
       setQuickAddValues(newValues);
     }
     setIsQuickAddDrawerOpen(false);
@@ -122,24 +97,25 @@ export default function Log({ isActive }: { isActive: boolean }) {
     setIsQuickAddDrawerOpen(false);
   };
 
+  // Undo water intake
   const handleUndo = () => {
     if (drinkLog.length > 0) {
       const lastDrink = drinkLog[drinkLog.length - 1];
       setWaterIntake((prev) => Math.max(0, prev - lastDrink));
-      setDrinkLog((prev) => prev.slice(0, -1));
+      setDrinkLog((prev) => prev.slice(0, -1)); // Remove the last drink from the log
     }
   };
 
+  // Reset all water intake when right-clicking (context menu) on the undo button
   const handleRightClickUndo = (e: React.MouseEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default context menu
     setWaterIntake(0);
-    setDrinkLog([]);
+    setDrinkLog([]); // Clear the log
   };
 
   const handleAddWater = (amount: number) => {
-    const amountInOz = convertToOunces(amount, measurementUnit); // Convert to ounces
-    setWaterIntake((prev) => prev + amountInOz);
-    setDrinkLog((prev) => [...prev, amountInOz]);
+    setWaterIntake((prev) => prev + amount);
+    setDrinkLog((prev) => [...prev, amount]); // Log each drink for undo functionality
   };
 
   const handleOpenCustomDrawer = () => {
@@ -161,10 +137,6 @@ export default function Log({ isActive }: { isActive: boolean }) {
     setNewQuickAddValue(Math.max(1, newQuickAddValue));
   };
 
-  // Convert the intake and goal to the selected unit
-  const displayedIntake = convertFromOunces(waterIntake, measurementUnit);
-  const displayedGoal = convertFromOunces(dailyGoal, measurementUnit);
-
   return (
     <div
       className={`relative flex flex-col items-center justify-center min-h-screen overflow-hidden font-sans ${
@@ -175,36 +147,43 @@ export default function Log({ isActive }: { isActive: boolean }) {
         <Droplet className='h-6 w-6'/>
       </div>
 
+      <div className="absolute top-4 right-4 z-10">
+        <ModeToggle />
+      </div>
+
       {/* Water Progress Wave */}
       <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
         <div className="relative w-full" style={{ height: "105%" }}>
+          
+          {/* Background Wave */}
           <Wave
-            fill={theme === "dark" ? "#153366" : "#1E40AF"}
+            fill={theme === "dark" ? "#153366" : "#1E40AF"} // Darker background wave
             paused={false}
             options={{
-              height: 10,
-              amplitude: 14,
-              speed: 0.15,
-              points: 2,
+              height: 15,
+              amplitude: 14, // Larger amplitude
+              speed: 0.15, // Slowest speed for background
+              points: 6,
             }}
             style={{
               position: "absolute",
               bottom: 0,
               width: "100%",
-              height: `${(displayedIntake / displayedGoal) * 100 + 12}%`,
+              height: `${(waterIntake / dailyGoal) * 100 + 12}%`, // Taller
               transition: "height 0.5s ease",
-              zIndex: 0,
+              zIndex: 0, // Background
             }}
           />
 
+          {/* Middle Wave */}
           <Wave
-            fill={theme === "dark" ? "#17377A" : "#2563EB"}
+            fill={theme === "dark" ? "#17377A" : "#2563EB"} // Slightly lighter than background
             paused={false}
             options={{
-              height: 10,
+              height: 13,
               amplitude: 12,
               speed: 0.2,
-              points: 3,
+              points: 5,
             }}
             style={{
               position: "absolute",
@@ -212,55 +191,71 @@ export default function Log({ isActive }: { isActive: boolean }) {
               width: "100%",
               height: `${(waterIntake / dailyGoal) * 100 + 10}%`,
               transition: "height 0.5s ease",
-              zIndex: 1,
+              zIndex: 1, // Middle
             }}
           />
 
+          {/* Foreground Wave */}
           <Wave
-            fill={theme === "dark" ? "#1E3A8A" : "#3B82F6"}
+            fill={theme === "dark" ? "#1E3A8A" : "#3B82F6"} // Foreground color
             paused={false}
             options={{
               height: 10,
               amplitude: 10,
-              speed: 0.3,
-              points: 5,
+              speed: 0.3, // Fastest for the foreground
+              points: 8,
             }}
             style={{
               position: "absolute",
               bottom: 0,
               width: "100%",
-              height: `${(waterIntake / dailyGoal) * 100 + 8}%`,
+              height: `${(waterIntake / dailyGoal) * 100 + 5}%`,
               transition: "height 0.5s ease",
-              zIndex: 2,
+              zIndex: 2, // Foreground
             }}
           />
+
+          {/* Third Wave (Foreground Accent Wave) */}
+          {/* <Wave
+            fill={theme === "dark" ? "#264084" : "#4F46E5"} // Accent color for a third wave
+            paused={false}
+            options={{
+              height: 8, // Smallest wave height
+              amplitude: 8, // Subtle wave
+              speed: 0.4, // Fastest for the accent
+              points: 10, // More points for a sharper look
+            }}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: "100%",
+              height: `${(waterIntake / dailyGoal) * 100 + 3}%`, // Slightly lower
+              transition: "height 0.5s ease",
+              zIndex: 3, // Top layer
+            }}
+          /> */}
         </div>
       </div>
 
+
       <div className="relative z-10 flex flex-col items-center">
         <div className="mb-10 text-center">
-          {/* Display water intake with the selected unit */}
-          <p className="text-8xl font-bold mt-4 flex items-baseline justify-center">
-            <span>{displayedIntake.toFixed(1)}</span>{" "}
-            <span className="text-4xl ml-2">{measurementUnit}</span>
-          </p>
+          <p className="text-8xl font-bold mt-4">{waterIntake} oz</p>
         </div>
 
         <div className="flex flex-wrap justify-center gap-6 mb-8">
-        {[...quickAddValues]
-          .sort((a, b) => a - b)
-          .map((value, index) => (
-          <Button
-            key={index}
-            onClick={() => handleAddWater(convertFromOunces(value, measurementUnit))}
-            onContextMenu={(e) => handleRightClickQuickAdd(e, index)}
-            className="px-6 py-4 rounded-2xl text-2xl h-16 min-w-20 flex items-baseline justify-center"
-          >
-            <span className="text-2xl">{convertFromOunces(value, measurementUnit).toFixed(1)}</span>{" "}
-            <span className="text-base ml-1">{measurementUnit}</span>
-          </Button>
-          ))}
-
+          {[...quickAddValues]
+            .sort((a, b) => a - b)
+            .map((value, index) => (
+              <Button
+                key={index}
+                onClick={() => handleAddWater(value)}
+                onContextMenu={(e) => handleRightClickQuickAdd(e, index)} // Right-click to edit
+                className="px-6 py-4 rounded-2xl text-2xl h-16 w-20"
+              >
+                {value} oz
+              </Button>
+            ))}
           <Button
             onClick={handleAddNewQuickAdd}
             variant="secondary"
@@ -271,6 +266,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
         </div>
       </div>
 
+      {/* Floating Action Buttons (FABs) */}
       <div
         className={`fixed bottom-8 right-8 z-20 flex space-x-4 transform ${
           showFABs ? "opacity-100 translate-y-0" : "opacity-0 translate-x-10"
@@ -278,9 +274,10 @@ export default function Log({ isActive }: { isActive: boolean }) {
           isActive ? "duration-500 delay-200" : "duration-200"
         }`}
       >
+
         <Button
           onClick={handleUndo}
-          onContextMenu={handleRightClickUndo}
+          onContextMenu={handleRightClickUndo} // Right-click to reset intake
           variant="secondary"
           className="p-4 h-16 w-16 rounded-full shadow-lg text-white bg-gray-700"
           size="lg"
@@ -297,6 +294,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
         </Button>
       </div>
 
+      {/* Quick Add Drawer */}
       <Drawer open={isQuickAddDrawerOpen} onClose={() => setIsQuickAddDrawerOpen(false)}>
         <DrawerContent className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
           <DrawerHeader>
@@ -365,6 +363,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
         </DrawerContent>
       </Drawer>
 
+      {/* Custom Amount Drawer */}
       <Drawer open={isCustomDrawerOpen} onClose={() => setIsCustomDrawerOpen(false)}>
         <DrawerContent className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
           <DrawerHeader>
