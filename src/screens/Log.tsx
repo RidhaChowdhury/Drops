@@ -44,6 +44,55 @@ export default function Log({ isActive }: { isActive: boolean }) {
    const [isAddingNew, setIsAddingNew] = useState(false);
    const [showFABs, setShowFABs] = useState(false);
 
+   const [isLongPress, setIsLongPress] = useState(false);
+   const [longPressTimeout, setLongPressTimeout] = useState<NodeJS.Timeout | null>(null);
+
+   // Define your long press handlers
+   const handleMouseDown = (index: number) => {
+      setIsLongPress(false);
+      const timeout = setTimeout(() => {
+         setIsLongPress(true);
+         handleLongPressQuickAdd(index);
+      }, 500);
+
+      setLongPressTimeout(timeout);
+   };
+
+   const handleMouseUp = () => {
+      if (longPressTimeout) {
+         clearTimeout(longPressTimeout);
+      }
+   };
+
+   const handleMouseLeave = () => {
+      if (longPressTimeout) {
+         clearTimeout(longPressTimeout);
+      }
+   };
+
+   const handleTouchStart = (index: number) => {
+      handleMouseDown(index);
+   };
+   
+   const handleTouchEnd = () => {
+      handleMouseUp();
+   };
+
+   const handleLongPressQuickAdd = (index: number) => {
+      setCurrentButton(index);
+      setNewQuickAddValue(convertFromOunces(quickAddValues[index], measurementUnit));
+      setIsAddingNew(false);
+      setIsQuickAddDrawerOpen(true);
+   };
+
+   useEffect(() => {
+      return () => {
+         if (longPressTimeout) {
+            clearTimeout(longPressTimeout);
+         }
+      };
+   }, [longPressTimeout]);
+
    useEffect(() => {
       if (isActive) {
          const timeout = setTimeout(() => setShowFABs(true), 100);
@@ -60,19 +109,6 @@ export default function Log({ isActive }: { isActive: boolean }) {
       updatedHistory.push({ date: currentDate, intake: waterIntake, drinkLog });
       saveWaterHistory(updatedHistory);
    }, [waterIntake, drinkLog, currentDate]);
-
-   const handleRightClickQuickAdd = (
-      e: React.MouseEvent<HTMLButtonElement>,
-      index: number
-   ) => {
-      e.preventDefault();
-      setCurrentButton(index);
-      setNewQuickAddValue(
-         convertFromOunces(quickAddValues[index], measurementUnit)
-      );
-      setIsAddingNew(false);
-      setIsQuickAddDrawerOpen(true);
-   };
 
    const handleAddNewQuickAdd = () => {
       setNewQuickAddValue(16);
@@ -245,9 +281,11 @@ export default function Log({ isActive }: { isActive: boolean }) {
                               convertFromOunces(value, measurementUnit)
                            )
                         }
-                        onContextMenu={(e) =>
-                           handleRightClickQuickAdd(e, index)
-                        }
+                        onMouseDown={() => handleMouseDown(index)}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseLeave}
+                        onTouchStart={() => handleTouchStart(index)} // Add touchstart
+                        onTouchEnd={handleTouchEnd} // Add touchend            
                         className="px-6 py-4 rounded-2xl text-2xl h-16 min-w-20 flex items-baseline justify-center"
                      >
                         <span className="text-2xl">
