@@ -135,6 +135,7 @@ export default function SettingsScreen() {
               checkedContent={<Bell className="h-3 w-3" />}
               uncheckedContent={<BellOff className="h-3 w-3" />}
               className="bg-neutral-200 dark:bg-neutral-800"
+              disabled={true}
             />
           </div>
 
@@ -148,15 +149,15 @@ export default function SettingsScreen() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-            <Button variant="secondary" className="rounded-full bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white" onClick={() => dispatch(backupData())}>
+            <Button variant="secondary" className="rounded-full bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white" onClick={() => dispatch(backupData())} disabled={true}>
               <FileDown className="mr-2 h-4 w-4" />
               {"Export Data (CSV)"}
             </Button>
-            <Button variant="secondary" className="rounded-full bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white" onClick={() => dispatch(loadFromCSV())}>
+            <Button variant="secondary" className="rounded-full bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white" onClick={() => dispatch(loadFromCSV())} disabled={true}>
               <FileUp className="mr-2 h-4 w-4" />
               {"Load Data (CSV)"}
             </Button>
-            <Button variant="destructive" className="rounded-full text-black dark:text-white" onClick={() => dispatch(clearHistory())}>
+            <Button variant="destructive" className="rounded-full text-black dark:text-white" onClick={() => dispatch(clearHistory())} disabled={true}>
               <Bomb className="mr-2 h-4 w-4" />
               Clear Full History
             </Button>
