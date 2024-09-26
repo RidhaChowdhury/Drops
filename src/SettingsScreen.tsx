@@ -8,6 +8,7 @@ import {
   backupData,
   loadFromCSV,
 } from "./settingsSlice";
+import { convertFromOunces, convertToOunces } from './utils/conversionUtils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
@@ -17,27 +18,6 @@ import { useTheme } from "@/components/theme-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ContentSwitch } from "@/components/content-switch"; // Assuming you're using ContentSwitch now
-
-// Conversion utility functions
-const convertFromOunces = (oz: number, unit: "oz" | "mL" | "L" | "cups"): number => {
-  const conversionRates = {
-    oz: 1,
-    mL: 29.5735,
-    L: 0.0295735,
-    cups: 0.125,
-  };
-  return oz * conversionRates[unit];
-};
-
-const convertToOunces = (amount: number, unit: "oz" | "mL" | "L" | "cups"): number => {
-  const conversionRates = {
-    oz: 1,
-    mL: 1 / 29.5735,
-    L: 1 / 0.0295735,
-    cups: 1 / 0.125,
-  };
-  return amount * conversionRates[unit];
-};
 
 export default function SettingsScreen() {
   const dispatch = useDispatch();

@@ -14,43 +14,8 @@ import Wave from "react-wavify"; // Import the Wave component
 import { useSelector } from "react-redux";
 import { RootState } from "./store"; // Import your Redux RootState type
 import { format } from 'date-fns';
-
-// Define the types for water history entries
-type WaterEntry = {
-  date: string;
-  intake: number;
-  drinkLog: number[];
-};
-
-// Utility functions
-const getWaterHistory = (): WaterEntry[] => JSON.parse(localStorage.getItem("waterHistory") || "[]");
-const saveWaterHistory = (history: WaterEntry[]): void =>
-  localStorage.setItem("waterHistory", JSON.stringify(history));
-
-// Conversion utility functions
-const convertFromOunces = (oz: number, unit: "oz" | "mL" | "L" | "cups"): number => {
-  const conversionRates = {
-    oz: 1,
-    mL: 29.5735,
-    L: 0.0295735,
-    cups: 0.125,
-    gallons: 0.0078125,
-    pints: 0.0625,
-  };
-  return oz * conversionRates[unit];
-};
-
-const convertToOunces = (amount: number, unit: "oz" | "mL" | "L" | "cups"): number => {
-  const conversionRates = {
-    oz: 1,
-    mL: 1 / 29.5735,
-    L: 1 / 0.0295735,
-    cups: 1 / 0.125,
-    gallons: 1 / 0.0078125,
-    pints: 1 / 0.0625,
-  };
-  return amount * conversionRates[unit];
-};
+import { WaterEntry, getWaterHistory, saveWaterHistory } from './utils/storageUtils';
+import { convertFromOunces, convertToOunces } from './utils/conversionUtils';
 
 export default function Log({ isActive }: { isActive: boolean }) {
   const { theme } = useTheme();
