@@ -11,8 +11,6 @@ import TabNavigation from '@/components/TabNavigation';
 
 import { Toaster } from '@/components/base-ui/sonner';
 
-import { Droplet } from 'lucide-react';
-
 export default function App() {
    const [selectedTab, setSelectedTab] = useState('water');
 
