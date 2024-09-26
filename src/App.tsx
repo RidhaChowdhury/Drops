@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GlassWater, BarChart, Settings } from 'lucide-react'; 
 import { useSwipeable } from 'react-swipeable';
-import Log from './Log'; 
-import SettingsScreen from './SettingsScreen'; // Import the new settings component
+import Log from './screens/Log'; 
+import SettingsScreen from './screens/Settings'; // Import the new settings component
 
 const tabs = [
   { label: 'Water', icon: <GlassWater />, value: 'water' },

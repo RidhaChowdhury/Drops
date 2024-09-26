@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button } from "./components/ui/button";
+import { Button } from "../components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -7,15 +7,15 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "./components/ui/drawer";
+} from "../components/ui/drawer";
 import { Minus, Plus, GlassWater, RotateCcw, Droplet } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import Wave from "react-wavify"; // Import the Wave component
 import { useSelector } from "react-redux";
-import { RootState } from "./store"; // Import your Redux RootState type
+import { RootState } from "../store"; // Import your Redux RootState type
 import { format } from 'date-fns';
-import { WaterEntry, getWaterHistory, saveWaterHistory } from './utils/storageUtils';
-import { convertFromOunces, convertToOunces } from './utils/conversionUtils';
+import { WaterEntry, getWaterHistory, saveWaterHistory } from '../utils/storageUtils';
+import { convertFromOunces, convertToOunces } from '../utils/conversionUtils';
 
 export default function Log({ isActive }: { isActive: boolean }) {
   const { theme } = useTheme();

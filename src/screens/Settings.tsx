@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "./store";
+import { RootState } from "../store";
 import {
   setDailyIntakeGoal,
   setMeasurementUnit,
@@ -7,8 +7,8 @@ import {
   clearHistory,
   backupData,
   loadFromCSV,
-} from "./settingsSlice";
-import { convertFromOunces, convertToOunces } from './utils/conversionUtils';
+} from "../settingsSlice";
+import { convertFromOunces, convertToOunces } from '../utils/conversionUtils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
