@@ -13,6 +13,7 @@ import { useTheme } from "@/components/theme-provider";
 import Wave from "react-wavify"; // Import the Wave component
 import { useSelector } from "react-redux";
 import { RootState } from "./store"; // Import your Redux RootState type
+import { format } from 'date-fns';
 
 // Define the types for water history entries
 type WaterEntry = {
@@ -22,7 +23,6 @@ type WaterEntry = {
 };
 
 // Utility functions
-const getCurrentDate = (): string => new Date().toISOString().split("T")[0];
 const getWaterHistory = (): WaterEntry[] => JSON.parse(localStorage.getItem("waterHistory") || "[]");
 const saveWaterHistory = (history: WaterEntry[]): void =>
   localStorage.setItem("waterHistory", JSON.stringify(history));
@@ -56,7 +56,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
   const { theme } = useTheme();
   const dailyGoal = useSelector((state: RootState) => state.settings.dailyIntakeGoal);
   const measurementUnit = useSelector((state: RootState) => state.settings.measurementUnit); // Get the selected unit from Redux
-  const currentDate = getCurrentDate();
+  const currentDate = format(new Date(), 'yyyy-MM-dd');
   const waterHistory: WaterEntry[] = getWaterHistory();
 
   const todayEntry: WaterEntry | undefined = waterHistory.find((entry: WaterEntry) => entry.date === currentDate);
