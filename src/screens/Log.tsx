@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/base-ui/button";
-import { Plus, Droplet } from "lucide-react"; // Removed Minus
-import { useTheme } from "@/hooks/theme-provider";
-import Wave from "react-wavify";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { convertFromOunces, convertToOunces } from "@/utils/conversionUtils";
-import { getWaterHistory, saveWaterHistory } from "@/utils/storageUtils";
+import { useTheme } from "@/hooks/theme-provider";
+
+import { Button } from "@/components/base-ui/button";
 import WaterEntryDrawer from "@/components/WaterEntryDrawer";
-import { toast } from "sonner";
 import FAB from "@/components/extended-ui/fab";
 import FABRow from "@/components/extended-ui/fab-row";
-import { RotateCcw, GlassWater } from "lucide-react";
+
+import { convertFromOunces, convertToOunces } from "@/utils/conversionUtils";
+import { getWaterHistory, saveWaterHistory } from "@/utils/storageUtils";
+
+import { toast } from "sonner";
+import Wave from "react-wavify";
+import { Plus, Droplet, RotateCcw, GlassWater } from "lucide-react";
+
 
 export default function Log({ isActive }: { isActive: boolean }) {
    const { theme } = useTheme();

@@ -1,5 +1,3 @@
-// components/TabNavigation.tsx
-
 import { Tabs, TabsList, TabsTrigger } from '@/components/base-ui/tabs';
 import { GlassWater, BarChart, Settings } from 'lucide-react';
 

@@ -1,14 +1,15 @@
-// App.tsx
-
+import { useState } from 'react';
 import { Provider } from 'react-redux';
+import { useSwipeable } from 'react-swipeable';
+
 import { store } from '@/store';
 import { ThemeProvider } from '@/hooks/theme-provider';
-import { useState } from 'react';
-import { useSwipeable } from 'react-swipeable';
-import Log from './screens/Log';
-import SettingsScreen from './screens/Settings';
+
+import Log from '@/screens/Log';
+import SettingsScreen from '@/screens/Settings';
 import TabNavigation from '@/components/TabNavigation';
-import { Toaster } from "@/components/base-ui/sonner"
+
+import { Toaster } from "@/components/base-ui/sonner";
 
 export default function App() {
    const [selectedTab, setSelectedTab] = useState('water');

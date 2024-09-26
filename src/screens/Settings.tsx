@@ -1,14 +1,18 @@
 import { useSettings } from "@/hooks/useSettings";
+import { useTheme } from "@/hooks/theme-provider";
+
+import { convertFromOunces, convertToOunces } from "@/utils/conversionUtils";
+
 import { Button } from "@/components/base-ui/button";
 import { Input } from "@/components/base-ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/base-ui/select";
 import { Label } from "@/components/base-ui/label";
-import { Sun, Moon, Bell, BellOff, FileDown, FileUp, Bomb } from "lucide-react";
-import { useTheme } from "@/hooks/theme-provider";
 import { ScrollArea } from "@/components/base-ui/scroll-area";
 import { Separator } from "@/components/base-ui/separator";
 import { ContentSwitch } from "@/components/extended-ui/content-switch";
-import { convertFromOunces, convertToOunces } from "@/utils/conversionUtils"; // Import conversion functions
+
+import { Sun, Moon, Bell, BellOff, FileDown, FileUp, Bomb } from "lucide-react";
+
 
 export default function SettingsScreen() {
   const { theme, setTheme } = useTheme(); 

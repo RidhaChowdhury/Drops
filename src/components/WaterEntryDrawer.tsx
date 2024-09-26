@@ -1,7 +1,5 @@
-// components/WaterEntryDrawer.tsx
-
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "./base-ui/drawer";
-import { Button } from "./base-ui/button";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/base-ui/drawer";
+import { Button } from "@/components/base-ui/button";
 import { Minus, Plus } from "lucide-react";
 import { useTheme } from "@/hooks/theme-provider";
 
