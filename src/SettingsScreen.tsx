@@ -49,7 +49,7 @@ export default function SettingsScreen() {
   // Convert the daily intake goal from ounces to the selected unit for display
   const displayedDailyGoal = convertFromOunces(dailyIntakeGoal, measurementUnit);
 
-  // Handle input change, converting back to ounces for storage
+  // Handle input change, converting back to ounces for storage (SWITCH TO SQL SAM!)
   const handleGoalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newGoalInUnit = parseFloat(e.target.value);
     const newGoalInOunces = convertToOunces(newGoalInUnit, measurementUnit); // Convert to ounces
