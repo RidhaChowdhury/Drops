@@ -72,9 +72,6 @@ export default function App() {
                      </div>
                   </div>
                </div>
-               <div className="absolute top-6 left-6 z-10">
-                  <Droplet className="h-6 w-6" />
-               </div>
                <TabNavigation
                   selectedTab={selectedTab}
                   onTabChange={setSelectedTab}
