@@ -25,7 +25,7 @@ const settingsSlice = createSlice({
     setNotificationsEnabled: (state, action: PayloadAction<boolean>) => {
       state.notificationsEnabled = action.payload;  // New reducer for notifications
     },
-    clearHistory: (state) => {
+    clearHistory: () => {
       // Placeholder for clearing history logic
     },
     backupData: () => {
