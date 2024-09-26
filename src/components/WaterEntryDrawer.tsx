@@ -1,7 +1,14 @@
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/base-ui/drawer";
-import { Button } from "@/components/base-ui/button";
-import { Minus, Plus } from "lucide-react";
-import { useTheme } from "@/hooks/theme-provider";
+import {
+   Drawer,
+   DrawerContent,
+   DrawerHeader,
+   DrawerTitle,
+   DrawerFooter,
+   DrawerClose,
+} from '@/components/base-ui/drawer';
+import { Button } from '@/components/base-ui/button';
+import { Minus, Plus } from 'lucide-react';
+import { useTheme } from '@/hooks/theme-provider';
 
 type WaterEntryDrawerProps = {
    isOpen: boolean;
@@ -27,14 +34,16 @@ export default function WaterEntryDrawer({
    onDecrease,
    onChange,
    onBlur,
-   isAddingNew = false,  // Default to false, unless specified
+   isAddingNew = false, // Default to false, unless specified
    onDelete,
 }: WaterEntryDrawerProps) {
    const { theme } = useTheme();
 
    return (
       <Drawer open={isOpen} onClose={onClose}>
-         <DrawerContent className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"}`}>
+         <DrawerContent
+            className={`${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
+         >
             <DrawerHeader>
                <DrawerTitle className="text-3xl">{title}</DrawerTitle>
             </DrawerHeader>
@@ -71,16 +80,27 @@ export default function WaterEntryDrawer({
                </div>
             </div>
             <DrawerFooter className="flex justify-between p-6">
-               <Button onClick={onSave} className="px-6 py-3 rounded-xl text-xl">
-                  {isAddingNew ? "Add" : "Save"}
+               <Button
+                  onClick={onSave}
+                  className="px-6 py-3 rounded-xl text-xl"
+               >
+                  {isAddingNew ? 'Add' : 'Save'}
                </Button>
                {!isAddingNew && onDelete && (
-                  <Button variant="destructive" className="px-6 py-3 rounded-xl text-xl" onClick={onDelete}>
+                  <Button
+                     variant="destructive"
+                     className="px-6 py-3 rounded-xl text-xl"
+                     onClick={onDelete}
+                  >
                      Remove
                   </Button>
                )}
                <DrawerClose asChild>
-                  <Button variant="outline" onClick={onClose} className="px-6 py-3 rounded-xl text-xl">
+                  <Button
+                     variant="outline"
+                     onClick={onClose}
+                     className="px-6 py-3 rounded-xl text-xl"
+                  >
                      Cancel
                   </Button>
                </DrawerClose>

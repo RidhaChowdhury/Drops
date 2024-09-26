@@ -9,7 +9,7 @@ import Log from '@/screens/Log';
 import SettingsScreen from '@/screens/Settings';
 import TabNavigation from '@/components/TabNavigation';
 
-import { Toaster } from "@/components/base-ui/sonner";
+import { Toaster } from '@/components/base-ui/sonner';
 
 export default function App() {
    const [selectedTab, setSelectedTab] = useState('water');
@@ -44,7 +44,10 @@ export default function App() {
    return (
       <Provider store={store}>
          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-            <div className="relative min-h-screen w-full flex flex-col items-center justify-center" {...handlers}>
+            <div
+               className="relative min-h-screen w-full flex flex-col items-center justify-center"
+               {...handlers}
+            >
                <div className="relative w-full min-h-screen overflow-hidden">
                   <div
                      className="absolute inset-0 w-full transition-transform duration-500"
@@ -57,7 +60,9 @@ export default function App() {
                      </div>
                      <div className="w-full min-h-screen absolute top-0 left-full">
                         <div className="flex justify-center items-center h-full w-full min-h-screen">
-                           <p className="text-2xl">Metrics Screen Placeholder</p>
+                           <p className="text-2xl">
+                              Metrics Screen Placeholder
+                           </p>
                         </div>
                      </div>
                      <div className="w-full min-h-screen absolute top-0 left-[200%]">
@@ -65,9 +70,12 @@ export default function App() {
                      </div>
                   </div>
                </div>
-               <TabNavigation selectedTab={selectedTab} onTabChange={setSelectedTab} />
+               <TabNavigation
+                  selectedTab={selectedTab}
+                  onTabChange={setSelectedTab}
+               />
             </div>
-            <Toaster/>
+            <Toaster />
          </ThemeProvider>
       </Provider>
    );
