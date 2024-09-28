@@ -4,6 +4,8 @@ import {
    setDailyIntakeGoal,
    setMeasurementUnit,
    setNotificationsEnabled,
+   setSoundEnabled, // New action for sound
+   setVibrationEnabled, // New action for vibration
    clearHistory,
    backupData,
    loadFromCSV,
@@ -22,6 +24,9 @@ export function useSettings() {
       dispatch(setMeasurementUnit(unit));
    const toggleNotifications = (enabled: boolean) =>
       dispatch(setNotificationsEnabled(enabled));
+   const toggleSound = (enabled: boolean) => dispatch(setSoundEnabled(enabled)); // New toggle for sound
+   const toggleVibration = (enabled: boolean) =>
+      dispatch(setVibrationEnabled(enabled)); // New toggle for vibration
    const clearAllHistory = () => dispatch(clearHistory());
    const backupSettingsData = () => dispatch(backupData());
    const loadSettingsFromCSV = () => dispatch(loadFromCSV());
@@ -31,6 +36,8 @@ export function useSettings() {
       updateDailyIntakeGoal,
       updateMeasurementUnit,
       toggleNotifications,
+      toggleSound, // Exported sound toggle
+      toggleVibration, // Exported vibration toggle
       clearAllHistory,
       backupSettingsData,
       loadSettingsFromCSV,

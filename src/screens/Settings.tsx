@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useSettings } from '@/hooks/useSettings';
 import { useTheme } from '@/hooks/theme-provider';
+import { Volume2, VolumeX, Vibrate, VibrateOff} from 'lucide-react';
 
 import { convertFromOunces, convertToOunces } from '@/utils/conversionUtils';
 
@@ -26,14 +28,18 @@ export default function SettingsScreen() {
       updateDailyIntakeGoal,
       updateMeasurementUnit,
       toggleNotifications,
+      toggleSound,
+      toggleVibration,
       clearAllHistory,
       backupSettingsData,
       loadSettingsFromCSV,
    } = useSettings();
 
+   const [reminders, setReminders] = useState<string[]>([]); // State for reminders
+   const [newReminder, setNewReminder] = useState(''); // Input for a new reminder
+
    const units: Array<'oz' | 'mL' | 'L' | 'cups'> = ['oz', 'mL', 'L', 'cups'];
 
-   // Convert the daily intake goal from ounces to the selected unit for display
    const displayedDailyGoal = convertFromOunces(
       settings.dailyIntakeGoal,
       settings.measurementUnit
@@ -44,8 +50,15 @@ export default function SettingsScreen() {
       const newGoalInOunces = convertToOunces(
          newGoalInUnit,
          settings.measurementUnit
-      ); // Convert to ounces before dispatching
+      );
       updateDailyIntakeGoal(newGoalInOunces);
+   };
+
+   const addReminder = () => {
+      if (newReminder.trim()) {
+         setReminders([...reminders, newReminder]);
+         setNewReminder('');
+      }
    };
 
    return (
@@ -53,13 +66,11 @@ export default function SettingsScreen() {
          className={`relative flex flex-col items-center justify-center h-screen font-sans ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}
       >
          <ScrollArea className="w-full max-w-lg mx-auto p-4 h-full pt-16">
-            {/* General Settings */}
             <div className="relative z-10 flex flex-col items-center w-full space-y-8">
                <div className="text-left w-full mb-4">
                   <h1 className="text-4xl font-bold">General Settings</h1>
                </div>
 
-               {/* Theme Switch */}
                <div className="flex items-center justify-between w-full">
                   <Label className="text-lg">Theme</Label>
                   <ContentSwitch
@@ -73,7 +84,6 @@ export default function SettingsScreen() {
                   />
                </div>
 
-               {/* Unit Select */}
                <div className="flex items-center justify-between w-full">
                   <Label className="text-lg">Unit</Label>
                   <Select
@@ -95,14 +105,13 @@ export default function SettingsScreen() {
                   </Select>
                </div>
 
-               {/* Daily Intake Goal */}
                <div className="flex items-center justify-between w-full">
                   <Label className="text-lg">Daily Goal</Label>
                   <div className="flex items-center">
                      <Input
                         type="number"
-                        value={displayedDailyGoal.toFixed(1)} // Display converted daily goal
-                        onChange={handleGoalChange} // Convert to ounces before dispatching
+                        value={displayedDailyGoal.toFixed(1)}
+                        onChange={handleGoalChange}
                         className="w-28 rounded-full border-2 border-transparent bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
                      />
                      <span className="ml-2">{settings.measurementUnit}</span>
@@ -112,13 +121,11 @@ export default function SettingsScreen() {
                <Separator className="my-4" />
             </div>
 
-            {/* Notification Settings */}
             <div className="relative z-10 flex flex-col items-center w-full space-y-8">
                <div className="text-left w-full mb-4">
                   <h2 className="text-3xl font-bold">Notification Settings</h2>
                </div>
 
-               {/* Notification Switch */}
                <div className="flex items-center justify-between w-full">
                   <Label className="text-lg">Enable Notifications</Label>
                   <ContentSwitch
@@ -129,14 +136,69 @@ export default function SettingsScreen() {
                      checkedContent={<Bell className="h-3 w-3" />}
                      uncheckedContent={<BellOff className="h-3 w-3" />}
                      className="bg-neutral-200 dark:bg-neutral-800"
-                     disabled={true}
                   />
                </div>
+
+               {settings.notificationsEnabled && (
+                  <>
+                     <div className="flex items-center justify-between w-full">
+                        <Label className="text-lg">Sound</Label>
+                        {/* Sound Switch */}
+                        <ContentSwitch
+                           checked={settings.soundEnabled}
+                           onCheckedChange={(checked: boolean) =>
+                              toggleSound(checked)
+                           }
+                           checkedContent={<Volume2 className="h-3 w-3" />} // Icon for sound enabled
+                           uncheckedContent={<VolumeX className="h-3 w-3" />} // Icon for sound disabled
+                           className="bg-neutral-200 dark:bg-neutral-800"
+                        />
+                     </div>
+
+                     <div className="flex items-center justify-between w-full">
+                        <Label className="text-lg">Vibration</Label>
+                        {/* Vibration Switch */}
+                        <ContentSwitch
+                           checked={settings.vibrationEnabled}
+                           onCheckedChange={(checked: boolean) =>
+                              toggleVibration(checked)
+                           }
+                           checkedContent={<Vibrate className="h-3 w-3" />} // Icon for vibration enabled
+                           uncheckedContent={
+                              <VibrateOff className="h-3 w-3" />
+                           } // Icon for vibration disabled
+                           className="bg-neutral-200 dark:bg-neutral-800"
+                        />
+                     </div>
+
+                     <div className="flex flex-col w-full space-y-4">
+                        <h3 className="text-xl font-bold">Reminders</h3>
+
+                        <div className="flex items-center space-x-2">
+                           <Input
+                              type="time"
+                              value={newReminder}
+                              onChange={(e) => setNewReminder(e.target.value)}
+                              className="rounded-full border-2 border-transparent bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
+                           />
+                           <Button onClick={addReminder}>Add</Button>
+                        </div>
+
+                        <ul className="space-y-2">
+                           {reminders.map((reminder, index) => (
+                              <li key={index} className="flex justify-between">
+                                 <span>{reminder}</span>
+                                 {/* Add more features like edit/remove if needed */}
+                              </li>
+                           ))}
+                        </ul>
+                     </div>
+                  </>
+               )}
 
                <Separator className="my-4" />
             </div>
 
-            {/* Data Management */}
             <div className="relative z-10 flex flex-col items-center w-full space-y-4">
                <div className="text-left w-full mb-4">
                   <h2 className="text-3xl font-bold">Data Management</h2>
