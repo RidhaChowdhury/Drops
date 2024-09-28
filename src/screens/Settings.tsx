@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { useSettings } from '@/hooks/useSettings';
 import { useTheme } from '@/hooks/theme-provider';
-import { Volume2, VolumeX, Vibrate, VibrateOff} from 'lucide-react';
+import {
+   Volume2,
+   VolumeX,
+   Vibrate,
+   VibrateOff,
+   Plus,
+   Trash2,
+} from 'lucide-react';
 
 import { convertFromOunces, convertToOunces } from '@/utils/conversionUtils';
 
@@ -18,6 +25,7 @@ import { Label } from '@/components/base-ui/label';
 import { ScrollArea } from '@/components/base-ui/scroll-area';
 import { Separator } from '@/components/base-ui/separator';
 import { ContentSwitch } from '@/components/extended-ui/content-switch';
+import TimePicker from '@/components/extended-ui/time-picker';
 
 import { Sun, Moon, Bell, BellOff, FileDown, FileUp, Bomb } from 'lucide-react';
 
@@ -35,8 +43,7 @@ export default function SettingsScreen() {
       loadSettingsFromCSV,
    } = useSettings();
 
-   const [reminders, setReminders] = useState<string[]>([]); // State for reminders
-   const [newReminder, setNewReminder] = useState(''); // Input for a new reminder
+   const [notificationTimes, setNotificationTimes] = useState<string[]>(['']);
 
    const units: Array<'oz' | 'mL' | 'L' | 'cups'> = ['oz', 'mL', 'L', 'cups'];
 
@@ -54,18 +61,30 @@ export default function SettingsScreen() {
       updateDailyIntakeGoal(newGoalInOunces);
    };
 
-   const addReminder = () => {
-      if (newReminder.trim()) {
-         setReminders([...reminders, newReminder]);
-         setNewReminder('');
-      }
+   const handleTimeChange = (index: number) => (time: string) => {
+      const newTimes = [...notificationTimes];
+      newTimes[index] = time;
+      setNotificationTimes(newTimes);
+   };
+
+   const addTimePicker = () => {
+      setNotificationTimes([...notificationTimes, '']);
+   };
+
+   const removeTimePicker = (index: number) => {
+      const newTimes = notificationTimes.filter((_, i) => i !== index);
+      setNotificationTimes(newTimes);
    };
 
    return (
       <div
-         className={`relative flex flex-col items-center justify-center h-screen font-sans ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}
+         className={`relative flex flex-col items-center justify-center min-h-screen font-sans ${
+            theme === 'dark'
+               ? 'bg-gray-900 text-white'
+               : 'bg-gray-100 text-black'
+         }`}
       >
-         <ScrollArea className="w-full max-w-lg mx-auto p-4 h-full pt-16">
+         <ScrollArea className="w-full max-w-lg mx-auto p-4 h-screen pt-16">
             <div className="relative z-10 flex flex-col items-center w-full space-y-8">
                <div className="text-left w-full mb-4">
                   <h1 className="text-4xl font-bold">General Settings</h1>
@@ -143,55 +162,65 @@ export default function SettingsScreen() {
                   <>
                      <div className="flex items-center justify-between w-full">
                         <Label className="text-lg">Sound</Label>
-                        {/* Sound Switch */}
                         <ContentSwitch
                            checked={settings.soundEnabled}
                            onCheckedChange={(checked: boolean) =>
                               toggleSound(checked)
                            }
-                           checkedContent={<Volume2 className="h-3 w-3" />} // Icon for sound enabled
-                           uncheckedContent={<VolumeX className="h-3 w-3" />} // Icon for sound disabled
+                           checkedContent={<Volume2 className="h-3 w-3" />}
+                           uncheckedContent={<VolumeX className="h-3 w-3" />}
                            className="bg-neutral-200 dark:bg-neutral-800"
                         />
                      </div>
 
                      <div className="flex items-center justify-between w-full">
                         <Label className="text-lg">Vibration</Label>
-                        {/* Vibration Switch */}
                         <ContentSwitch
                            checked={settings.vibrationEnabled}
                            onCheckedChange={(checked: boolean) =>
                               toggleVibration(checked)
                            }
-                           checkedContent={<Vibrate className="h-3 w-3" />} // Icon for vibration enabled
-                           uncheckedContent={
-                              <VibrateOff className="h-3 w-3" />
-                           } // Icon for vibration disabled
+                           checkedContent={<Vibrate className="h-3 w-3" />}
+                           uncheckedContent={<VibrateOff className="h-3 w-3" />}
                            className="bg-neutral-200 dark:bg-neutral-800"
                         />
                      </div>
 
-                     <div className="flex flex-col w-full space-y-4">
+                     <div className="relative flex flex-col w-full space-y-4">
                         <h3 className="text-xl font-bold">Reminders</h3>
 
-                        <div className="flex items-center space-x-2">
-                           <Input
-                              type="time"
-                              value={newReminder}
-                              onChange={(e) => setNewReminder(e.target.value)}
-                              className="rounded-full border-2 border-transparent bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
-                           />
-                           <Button onClick={addReminder}>Add</Button>
-                        </div>
+                        {notificationTimes.map((time, index) => (
+                           <div
+                              key={index}
+                              className="flex items-center justify-end space-x-2"
+                           >
+                              <TimePicker
+                                 onTimeChange={handleTimeChange(index)}
+                              />
+                              <Button
+                                 onClick={() => removeTimePicker(index)}
+                                 variant="ghost"
+                                 size="icon"
+                                 className="ml-2"
+                              >
+                                 <Trash2 className="h-4 w-4" />
+                              </Button>
+                           </div>
+                        ))}
 
-                        <ul className="space-y-2">
-                           {reminders.map((reminder, index) => (
-                              <li key={index} className="flex justify-between">
-                                 <span>{reminder}</span>
-                                 {/* Add more features like edit/remove if needed */}
-                              </li>
-                           ))}
-                        </ul>
+                        {/* Wrapper to control the height and avoid overlapping */}
+                        <div
+                           className="relative w-full pb-6"
+                        >
+                           <Button
+                              onClick={addTimePicker}
+                              variant="outline"
+                              size="icon"
+                              className="absolute bottom-0 right-1 w-8 h-8 rounded-full border-2 border-transparent bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
+                           >
+                              <Plus className="h-4 w-4" />
+                           </Button>
+                        </div>
                      </div>
                   </>
                )}
