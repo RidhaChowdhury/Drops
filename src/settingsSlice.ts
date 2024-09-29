@@ -4,16 +4,18 @@ interface SettingsState {
    dailyIntakeGoal: number;
    measurementUnit: 'oz' | 'mL' | 'L' | 'cups';
    notificationsEnabled: boolean;
-   soundEnabled: boolean; // New sound setting
-   vibrationEnabled: boolean; // New vibration setting
+   soundEnabled: boolean;
+   vibrationEnabled: boolean;
+   notificationTimes: string[]; // Adjust notification times array to support start and end time
 }
 
 const initialState: SettingsState = {
    dailyIntakeGoal: 150,
    measurementUnit: 'oz',
    notificationsEnabled: false,
-   soundEnabled: true, // Default to sound enabled
-   vibrationEnabled: true, // Default to vibration enabled
+   soundEnabled: true,
+   vibrationEnabled: true,
+   notificationTimes: ['08:00', '20:00'], // Default start and end time for notifications
 };
 
 const settingsSlice = createSlice({
@@ -33,10 +35,13 @@ const settingsSlice = createSlice({
          state.notificationsEnabled = action.payload;
       },
       setSoundEnabled: (state, action: PayloadAction<boolean>) => {
-         state.soundEnabled = action.payload; // New reducer for sound setting
+         state.soundEnabled = action.payload;
       },
       setVibrationEnabled: (state, action: PayloadAction<boolean>) => {
-         state.vibrationEnabled = action.payload; // New reducer for vibration setting
+         state.vibrationEnabled = action.payload;
+      },
+      setNotificationTimes: (state, action: PayloadAction<string[]>) => {
+         state.notificationTimes = action.payload; // Adjust to handle start and end time
       },
       clearHistory: () => {
          // Placeholder for clearing history logic
@@ -54,8 +59,9 @@ export const {
    setDailyIntakeGoal,
    setMeasurementUnit,
    setNotificationsEnabled,
-   setSoundEnabled, // Exporting sound toggle action
-   setVibrationEnabled, // Exporting vibration toggle action
+   setSoundEnabled,
+   setVibrationEnabled,
+   setNotificationTimes, // Adjusted to handle start and end time
    clearHistory,
    backupData,
    loadFromCSV,

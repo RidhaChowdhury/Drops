@@ -10,19 +10,44 @@ import {
 
 interface TimePickerProps {
    onTimeChange: (time: string) => void;
+   defaultValue?: string; // Optional default value in "HH:MM AM/PM" format
 }
 
-const TimePicker: React.FC<TimePickerProps> = ({ onTimeChange }) => {
-   const [hours, setHours] = useState('');
-   const [minutes, setMinutes] = useState('');
-   const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
+const TimePicker: React.FC<TimePickerProps> = ({
+   onTimeChange,
+   defaultValue,
+}) => {
+   const parseDefaultValue = (value: string) => {
+      const [time, period] = value.split(' ');
+      const [defaultHours, defaultMinutes] = time.split(':');
+      return { defaultHours, defaultMinutes, period };
+   };
+
+   // Initialize state with default values if provided
+   const {
+      defaultHours,
+      defaultMinutes,
+      period: defaultPeriod,
+   } = defaultValue
+      ? parseDefaultValue(defaultValue)
+      : { defaultHours: '', defaultMinutes: '', period: 'AM' };
+
+   const [hours, setHours] = useState(defaultHours || '');
+   const [minutes, setMinutes] = useState(defaultMinutes || '');
+   const [period, setPeriod] = useState<'AM' | 'PM'>(
+      defaultPeriod as 'AM' | 'PM'
+   );
+
    const minutesInputRef = useRef<HTMLInputElement>(null);
 
    const handleHoursChange = (e: ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 12)) {
          setHours(value);
-         if (value.length === 2) {
+         if (
+            value.length === 2 ||
+            (parseInt(value) < 10 && parseInt(value) !== 1)
+         ) {
             minutesInputRef.current?.focus();
          }
       }
@@ -52,9 +77,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ onTimeChange }) => {
       }
    }, [hours, minutes, period]);
 
-   const commonInputClasses =
-      'w-16 text-center rounded-full border-2 border-transparent transition-colors bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white';
-
    return (
       <div className="flex items-center space-x-2">
          <Input
@@ -62,21 +84,21 @@ const TimePicker: React.FC<TimePickerProps> = ({ onTimeChange }) => {
             value={hours}
             onChange={handleHoursChange}
             placeholder="HH"
-            className={commonInputClasses}
+            className="rounded-l-2xl w-12 text-center border-2 border-transparent transition-colors bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
             maxLength={2}
          />
-         <span>:</span>
+         <span className="text-xl">:</span>
          <Input
             type="text"
             value={minutes}
             onChange={handleMinutesChange}
             placeholder="MM"
-            className={commonInputClasses}
+            className="w-12 rounded-lg text-center border-2 border-transparent transition-colors bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
             maxLength={2}
             ref={minutesInputRef}
          />
          <Select value={period} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-[70px] rounded-full border-2 border-transparent transition-colors bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white">
+            <SelectTrigger className="w-[70px] rounded-r-2xl border-2 border-transparent transition-colors bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white">
                <SelectValue>{period}</SelectValue>
             </SelectTrigger>
             <SelectContent className="rounded-lg">

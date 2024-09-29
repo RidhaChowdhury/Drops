@@ -4,8 +4,9 @@ import {
    setDailyIntakeGoal,
    setMeasurementUnit,
    setNotificationsEnabled,
-   setSoundEnabled, // New action for sound
-   setVibrationEnabled, // New action for vibration
+   setSoundEnabled,
+   setVibrationEnabled,
+   setNotificationTimes, // Import for handling start and end times
    clearHistory,
    backupData,
    loadFromCSV,
@@ -14,19 +15,22 @@ import {
 export function useSettings() {
    const dispatch = useDispatch();
 
-   // Selector logic
    const settings = useSelector((state: RootState) => state.settings);
 
-   // Action creators wrapped in dispatch
    const updateDailyIntakeGoal = (goal: number) =>
       dispatch(setDailyIntakeGoal(goal));
    const updateMeasurementUnit = (unit: 'oz' | 'mL' | 'L' | 'cups') =>
       dispatch(setMeasurementUnit(unit));
    const toggleNotifications = (enabled: boolean) =>
       dispatch(setNotificationsEnabled(enabled));
-   const toggleSound = (enabled: boolean) => dispatch(setSoundEnabled(enabled)); // New toggle for sound
+   const toggleSound = (enabled: boolean) => dispatch(setSoundEnabled(enabled));
    const toggleVibration = (enabled: boolean) =>
-      dispatch(setVibrationEnabled(enabled)); // New toggle for vibration
+      dispatch(setVibrationEnabled(enabled));
+
+   // New function to update notification times (start and end time)
+   const updateNotificationTimes = (times: string[]) =>
+      dispatch(setNotificationTimes(times));
+
    const clearAllHistory = () => dispatch(clearHistory());
    const backupSettingsData = () => dispatch(backupData());
    const loadSettingsFromCSV = () => dispatch(loadFromCSV());
@@ -36,8 +40,9 @@ export function useSettings() {
       updateDailyIntakeGoal,
       updateMeasurementUnit,
       toggleNotifications,
-      toggleSound, // Exported sound toggle
-      toggleVibration, // Exported vibration toggle
+      toggleSound,
+      toggleVibration,
+      updateNotificationTimes, // Expose function to update notification times
       clearAllHistory,
       backupSettingsData,
       loadSettingsFromCSV,
