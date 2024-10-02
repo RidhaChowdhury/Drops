@@ -46,12 +46,22 @@ export default function Log({ isActive }: { isActive: boolean }) {
 
    const [longPressTimeout, setLongPressTimeout] = useState<NodeJS.Timeout | null>(null);
 
-   // Define your long press handlers
-   const handleMouseDown = (index: number) => {
+   // long press handler
+   const handleLongPress = (callback: () => void, delay = 500) => {
       const timeout = setTimeout(() => {
-         handleLongPressQuickAdd(index);
-      }, 500);
+         callback();
+      }, delay);
+   
+      return timeout;
+   };
 
+   const handleQuickAddMouseDown = (index: number) => {
+      const timeout = handleLongPress(() => handleLongPressQuickAdd(index));
+      setLongPressTimeout(timeout);
+   };
+
+   const handleUndoMouseDown = () => {
+      const timeout = handleLongPress(handleLongPressUndo);
       setLongPressTimeout(timeout);
    };
 
@@ -67,20 +77,17 @@ export default function Log({ isActive }: { isActive: boolean }) {
       }
    };
 
-   const handleTouchStart = (index: number) => {
-      handleMouseDown(index);
-   };
-   
-   const handleTouchEnd = () => {
-      handleMouseUp();
-   };
-
    const handleLongPressQuickAdd = (index: number) => {
       setCurrentButton(index);
       setNewQuickAddValue(convertFromOunces(quickAddValues[index], measurementUnit));
       setIsAddingNew(false);
       setIsQuickAddDrawerOpen(true);
    };
+
+   const handleLongPressUndo = () => {
+      setWaterIntake(0);
+      setDrinkLog([]);
+   }
 
    useEffect(() => {
       return () => {
@@ -278,11 +285,11 @@ export default function Log({ isActive }: { isActive: boolean }) {
                               convertFromOunces(value, measurementUnit)
                            )
                         }
-                        onMouseDown={() => handleMouseDown(index)}
+                        onMouseDown={() => handleQuickAddMouseDown(index)}
                         onMouseUp={handleMouseUp}
                         onMouseLeave={handleMouseLeave}
-                        onTouchStart={() => handleTouchStart(index)} // Add touchstart
-                        onTouchEnd={handleTouchEnd} // Add touchend            
+                        onTouchStart={() => handleQuickAddMouseDown(index)} // Add touchstart
+                        onTouchEnd={handleMouseUp} // Add touchend            
                         className="px-6 py-4 rounded-2xl text-2xl h-16 min-w-20 flex items-baseline justify-center"
                      >
                         <span className="text-2xl">
@@ -309,6 +316,11 @@ export default function Log({ isActive }: { isActive: boolean }) {
          <FABRow isActive={isActive} showFABs={showFABs}>
             <FAB
                onClick={handleUndo}
+               onMouseDown={() => handleUndoMouseDown()}
+               onMouseUp={handleMouseUp}
+               onMouseLeave={handleMouseLeave}
+               onTouchStart={() => handleUndoMouseDown()} // Add touchstart
+               onTouchEnd={handleMouseUp} // Add touchend      
                icon={RotateCcw}
                bgClass="bg-gray-700"
                variant="secondary"
