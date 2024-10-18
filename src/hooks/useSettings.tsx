@@ -6,7 +6,7 @@ import {
    setNotificationsEnabled,
    setSoundEnabled,
    setVibrationEnabled,
-   setNotificationTimes, // Import for handling start and end times
+   setNotificationDelay,
    clearHistory,
    backupData,
    loadFromCSV,
@@ -26,11 +26,8 @@ export function useSettings() {
    const toggleSound = (enabled: boolean) => dispatch(setSoundEnabled(enabled));
    const toggleVibration = (enabled: boolean) =>
       dispatch(setVibrationEnabled(enabled));
-
-   // New function to update notification times (start and end time)
-   const updateNotificationTimes = (times: string[]) =>
-      dispatch(setNotificationTimes(times));
-
+   const updateNotificationDelay = (delay: number) =>
+      dispatch(setNotificationDelay(delay));
    const clearAllHistory = () => dispatch(clearHistory());
    const backupSettingsData = () => dispatch(backupData());
    const loadSettingsFromCSV = () => dispatch(loadFromCSV());
@@ -42,7 +39,7 @@ export function useSettings() {
       toggleNotifications,
       toggleSound,
       toggleVibration,
-      updateNotificationTimes, // Expose function to update notification times
+      updateNotificationDelay, // Expose function to update notification times
       clearAllHistory,
       backupSettingsData,
       loadSettingsFromCSV,

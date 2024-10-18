@@ -7,6 +7,7 @@ interface SettingsState {
    soundEnabled: boolean;
    vibrationEnabled: boolean;
    notificationTimes: string[]; // Adjust notification times array to support start and end time
+   notificationDelay: number;
 }
 
 const initialState: SettingsState = {
@@ -16,6 +17,7 @@ const initialState: SettingsState = {
    soundEnabled: true,
    vibrationEnabled: true,
    notificationTimes: ['08:00', '20:00'], // Default start and end time for notifications
+   notificationDelay: 60
 };
 
 const settingsSlice = createSlice({
@@ -40,8 +42,8 @@ const settingsSlice = createSlice({
       setVibrationEnabled: (state, action: PayloadAction<boolean>) => {
          state.vibrationEnabled = action.payload;
       },
-      setNotificationTimes: (state, action: PayloadAction<string[]>) => {
-         state.notificationTimes = action.payload; // Adjust to handle start and end time
+      setNotificationDelay: (state, action: PayloadAction<number>) => {
+         state.notificationDelay = action.payload; // Adjust to handle start and end time
       },
       clearHistory: () => {
          // Placeholder for clearing history logic
@@ -61,7 +63,7 @@ export const {
    setNotificationsEnabled,
    setSoundEnabled,
    setVibrationEnabled,
-   setNotificationTimes, // Adjusted to handle start and end time
+   setNotificationDelay, // Adjusted to handle start and end time
    clearHistory,
    backupData,
    loadFromCSV,

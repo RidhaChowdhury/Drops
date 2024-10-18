@@ -11,6 +11,8 @@ import FABRow from '@/components/extended-ui/fab-row';
 import { convertFromOunces, convertToOunces } from '@/utils/conversionUtils';
 import { getWaterHistory, saveWaterHistory } from '@/utils/storageUtils';
 
+import { LocalNotifications } from '@capacitor/local-notifications';
+
 import { toast } from 'sonner';
 import Wave from 'react-wavify';
 import { Plus, Droplet, RotateCcw, GlassWater } from 'lucide-react';
@@ -23,6 +25,14 @@ export default function Log({ isActive }: { isActive: boolean }) {
    const measurementUnit = useSelector(
       (state: RootState) => state.settings.measurementUnit
    );
+   const {
+      notificationsEnabled,
+      notifcationDelay,
+   } = useSelector((state: RootState) => ({
+      notificationsEnabled: state.settings.notificationsEnabled,
+      notifcationDelay: state.settings.notificationDelay
+   }));
+
    const currentDate = new Date().toISOString().split('T')[0];
    const waterHistory = getWaterHistory();
 
@@ -161,10 +171,41 @@ export default function Log({ isActive }: { isActive: boolean }) {
       }
    };
 
-   const handleAddWater = (amount: number) => {
+   // Function to handle adding water intake
+   const handleAddWater = async (amount: number) => {
       const amountInOz = convertToOunces(amount, measurementUnit);
+
+      // Update water intake and drink log
       setWaterIntake((prev) => prev + amountInOz);
       setDrinkLog((prev) => [...prev, amountInOz]);
+
+      // Set a new notification reminder
+      handleSetNotification();
+   };
+   
+   // Function to set the notification after x minutes
+   const handleSetNotification = async () => {
+      // Check if notifications are enabled in the settings
+      if (!notificationsEnabled) return;
+
+      // Cancel existing notifications before scheduling a new one
+      await LocalNotifications.cancel({ notifications: [] });
+      
+      const notificationTime = new Date((new Date()).getTime() + notifcationDelay * 60000);
+
+      // Only schedule the notification if the time is within the set bounds
+      await LocalNotifications.schedule({
+         notifications: [
+            {
+               id: 0,
+               title: 'Hydration Reminder',
+               body: 'Time to drink water!',
+               schedule: {
+                  at: notificationTime,
+               },
+            },
+         ],
+      });
    };
 
    const handleOpenCustomDrawer = () => {
