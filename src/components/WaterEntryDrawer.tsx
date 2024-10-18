@@ -4,10 +4,10 @@ import {
    DrawerHeader,
    DrawerTitle,
    DrawerFooter,
-   DrawerClose,
 } from '@/components/base-ui/drawer';
 import { Button } from '@/components/base-ui/button';
 import { Minus, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/hooks/theme-provider';
 
 type WaterEntryDrawerProps = {
@@ -15,13 +15,12 @@ type WaterEntryDrawerProps = {
    title: string;
    value: number;
    onClose: () => void;
-   onSave: () => void;
+   onSaveCustom: () => void;
+   onSaveQuickAdd: () => void;
    onIncrease: () => void;
    onDecrease: () => void;
    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
    onBlur: () => void;
-   isAddingNew?: boolean;
-   onDelete?: () => void;
 };
 
 export default function WaterEntryDrawer({
@@ -29,20 +28,35 @@ export default function WaterEntryDrawer({
    title,
    value,
    onClose,
-   onSave,
+   onSaveCustom,
+   onSaveQuickAdd,
    onIncrease,
    onDecrease,
    onChange,
    onBlur,
-   isAddingNew = false, // Default to false, unless specified
-   onDelete,
 }: WaterEntryDrawerProps) {
    const { theme } = useTheme();
+   const [isEditing, setIsEditing] = useState(false);
+
+   // Reset the edit mode when the drawer closes
+   useEffect(() => {
+      if (!isOpen) {
+         setIsEditing(false); // Reset to not be in edit mode when closed
+      }
+   }, [isOpen]);
+
+   const handleEdit = () => setIsEditing(true);
 
    return (
       <Drawer open={isOpen} onClose={onClose}>
          <DrawerContent
-            className={`${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
+            className={`${
+               theme === 'dark'
+                  ? 'bg-gray-800 text-white'
+                  : 'bg-white text-black'
+            } transition-all duration-300 ease-in-out ${
+               isEditing ? 'max-h-[600px]' : 'max-h-[400px]'
+            } overflow-hidden`}
          >
             <DrawerHeader>
                <DrawerTitle className="text-3xl">{title}</DrawerTitle>
@@ -79,31 +93,47 @@ export default function WaterEntryDrawer({
                   </Button>
                </div>
             </div>
-            <DrawerFooter className="flex justify-between p-6">
-               <Button
-                  onClick={onSave}
-                  className="px-6 py-3 rounded-xl text-xl"
-               >
-                  {isAddingNew ? 'Add' : 'Save'}
-               </Button>
-               {!isAddingNew && onDelete && (
+
+            {/* Drawer Footer */}
+            <DrawerFooter className="flex flex-col space-y-2 p-6">
+               {/* Conditionally Render Add or Save Buttons */}
+               {!isEditing && (
                   <Button
-                     variant="destructive"
+                     onClick={onSaveCustom}
                      className="px-6 py-3 rounded-xl text-xl"
-                     onClick={onDelete}
                   >
-                     Remove
+                     Add Custom Amount
                   </Button>
                )}
-               <DrawerClose asChild>
+
+               {isEditing && (
                   <Button
-                     variant="outline"
-                     onClick={onClose}
+                     onClick={onSaveQuickAdd}
                      className="px-6 py-3 rounded-xl text-xl"
                   >
-                     Cancel
+                     Save Quick Add
                   </Button>
-               </DrawerClose>
+               )}
+
+               {/* Edit Quick Add Button with more bottom spacing */}
+               <Button
+                  onClick={handleEdit}
+                  variant="default"
+                  className="px-6 py-3 rounded-xl text-xl mb-8" // Increased bottom margin
+               >
+                  Edit Quick Add
+               </Button>
+
+               {/* Remove button in edit mode */}
+               {/* {( */}
+                  <Button
+                     variant="destructive"
+                     onClick={() => console.log('Remove Quick Add')}
+                     className="px-6 py-3 rounded-xl text-xl"
+                  >
+                     Remove Quick Add
+                  </Button>
+               {/* )} */}
             </DrawerFooter>
          </DrawerContent>
       </Drawer>
