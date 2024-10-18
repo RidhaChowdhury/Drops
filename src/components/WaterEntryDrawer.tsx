@@ -1,3 +1,6 @@
+import * as React from 'react';
+import { Button } from '@/components/base-ui/button';
+import { ScrollArea, ScrollBar } from '@/components/base-ui/scroll-area';
 import {
    Drawer,
    DrawerContent,
@@ -5,8 +8,7 @@ import {
    DrawerTitle,
    DrawerFooter,
 } from '@/components/base-ui/drawer';
-import { Button } from '@/components/base-ui/button';
-import { Minus, Plus } from 'lucide-react';
+import {Plus, Minus} from "lucide-react";
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/hooks/theme-provider';
 
@@ -14,9 +16,11 @@ type WaterEntryDrawerProps = {
    isOpen: boolean;
    title: string;
    value: number;
+   quickAdds: number[]; // Array of quick add values
    onClose: () => void;
    onSaveCustom: () => void;
    onSaveQuickAdd: () => void;
+   onQuickAdd: (amount: number) => void; // Action when quick add button is clicked
    onIncrease: () => void;
    onDecrease: () => void;
    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -27,9 +31,13 @@ export default function WaterEntryDrawer({
    isOpen,
    title,
    value,
+   quickAdds = [
+      16, 32, 64, 16, 32, 64, 16, 32, 64, 16, 32, 64, 16, 32, 64, 16, 32, 64,
+   ],
    onClose,
    onSaveCustom,
    onSaveQuickAdd,
+   onQuickAdd,
    onIncrease,
    onDecrease,
    onChange,
@@ -45,7 +53,14 @@ export default function WaterEntryDrawer({
       }
    }, [isOpen]);
 
-   const handleEdit = () => setIsEditing(true);
+   const handleQuickAddClick = (amount: number) => {
+      onQuickAdd(amount); // Add quick add amount
+      onClose(); // Close drawer after selection
+   };
+
+   const handleQuickAddHold = () => {
+      setIsEditing(true); // Turn on edit mode when held
+   };
 
    return (
       <Drawer open={isOpen} onClose={onClose}>
@@ -55,7 +70,7 @@ export default function WaterEntryDrawer({
                   ? 'bg-gray-800 text-white'
                   : 'bg-white text-black'
             } transition-all duration-300 ease-in-out ${
-               isEditing ? 'max-h-[600px]' : 'max-h-[400px]'
+               isEditing ? 'max-h-[600px]' : 'max-h-[450px]'
             } overflow-hidden`}
          >
             <DrawerHeader>
@@ -70,7 +85,7 @@ export default function WaterEntryDrawer({
                      onClick={onDecrease}
                      disabled={value <= 1}
                   >
-                     <Minus size={24} />
+                     <Minus />
                   </Button>
                   <div className="flex-1 text-center">
                      <input
@@ -89,9 +104,36 @@ export default function WaterEntryDrawer({
                      className="h-12 w-12 shrink-0 rounded-full"
                      onClick={onIncrease}
                   >
-                     <Plus size={24} />
+                     <Plus />
                   </Button>
                </div>
+            </div>
+
+            {/* Quick Add Horizontal Scroll Area */}
+            <div className="flex flex-row align-center justify-center px-6 pt-2">
+               <ScrollArea>
+                  <div className="flex w-max space-x-4 pb-2">
+                     {quickAdds.map((amount, index) => (
+                        <Button
+                           key={index}
+                           onClick={() => handleQuickAddClick(amount)}
+                           onMouseDown={handleQuickAddHold} // On hold, edit mode
+                           className="px-4 rounded-xl text-lg shrink-0"
+                           variant={'outline'}
+                        >
+                           {amount} oz
+                        </Button>
+                     ))}
+                  </div>
+                  <ScrollBar orientation="horizontal"/>
+               </ScrollArea>
+               {/* Add new quick add button, off to the right */}
+               <Button
+                  className="px-2 py-2 rounded-full text-lg shrink-0"
+                  onClick={() => console.log('Add new quick add')}
+               >
+                  <Plus />
+               </Button>
             </div>
 
             {/* Drawer Footer */}
@@ -114,26 +156,6 @@ export default function WaterEntryDrawer({
                      Save Quick Add
                   </Button>
                )}
-
-               {/* Edit Quick Add Button with more bottom spacing */}
-               <Button
-                  onClick={handleEdit}
-                  variant="default"
-                  className="px-6 py-3 rounded-xl text-xl mb-8" // Increased bottom margin
-               >
-                  Edit Quick Add
-               </Button>
-
-               {/* Remove button in edit mode */}
-               {/* {( */}
-                  <Button
-                     variant="destructive"
-                     onClick={() => console.log('Remove Quick Add')}
-                     className="px-6 py-3 rounded-xl text-xl"
-                  >
-                     Remove Quick Add
-                  </Button>
-               {/* )} */}
             </DrawerFooter>
          </DrawerContent>
       </Drawer>
