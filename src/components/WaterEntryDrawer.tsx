@@ -8,7 +8,7 @@ import {
    DrawerTitle,
    DrawerFooter,
 } from '@/components/base-ui/drawer';
-import {Plus, Minus} from "lucide-react";
+import { Plus, Minus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/hooks/theme-provider';
 
@@ -16,50 +16,47 @@ type WaterEntryDrawerProps = {
    isOpen: boolean;
    title: string;
    value: number;
-   quickAdds: number[]; // Array of quick add values
    onClose: () => void;
    onSaveCustom: () => void;
-   onSaveQuickAdd: () => void;
-   onQuickAdd: (amount: number) => void; // Action when quick add button is clicked
    onIncrease: () => void;
    onDecrease: () => void;
    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
    onBlur: () => void;
+   onQuickAdd: (amount: number) => void; // Action when quick add button is clicked
 };
 
 export default function WaterEntryDrawer({
    isOpen,
    title,
    value,
-   quickAdds = [
-      16, 32, 64, 16, 32, 64, 16, 32, 64, 16, 32, 64, 16, 32, 64, 16, 32, 64,
-   ],
    onClose,
    onSaveCustom,
-   onSaveQuickAdd,
-   onQuickAdd,
    onIncrease,
    onDecrease,
    onChange,
    onBlur,
+   onQuickAdd, // Add this new prop
 }: WaterEntryDrawerProps) {
    const { theme } = useTheme();
    const [isEditing, setIsEditing] = useState(false);
+   const [quickAdds, setQuickAdds] = useState<number[]>(() =>
+      JSON.parse(localStorage.getItem('quickAddValues') || '[8, 16]')
+   );
 
-   // Reset the edit mode when the drawer closes
-   useEffect(() => {
-      if (!isOpen) {
-         setIsEditing(false); // Reset to not be in edit mode when closed
-      }
-   }, [isOpen]);
+   // Save quick add values to localStorage
+   const saveQuickAdds = (newValues: number[]) => {
+      setQuickAdds(newValues);
+      localStorage.setItem('quickAddValues', JSON.stringify(newValues));
+   };
 
    const handleQuickAddClick = (amount: number) => {
-      onQuickAdd(amount); // Add quick add amount
+      // Call the onQuickAdd prop passed from the parent with the correct value
+      onQuickAdd(amount);
       onClose(); // Close drawer after selection
    };
 
-   const handleQuickAddHold = () => {
-      setIsEditing(true); // Turn on edit mode when held
+   const handleQuickAddHold = (index: number) => {
+      setIsEditing(true);
    };
 
    return (
@@ -116,8 +113,8 @@ export default function WaterEntryDrawer({
                      {quickAdds.map((amount, index) => (
                         <Button
                            key={index}
-                           onClick={() => handleQuickAddClick(amount)}
-                           onMouseDown={handleQuickAddHold} // On hold, edit mode
+                           onClick={() => handleQuickAddClick(amount)} // Use correct value
+                           onMouseDown={() => handleQuickAddHold(index)} // On hold, edit mode
                            className="px-4 rounded-xl text-lg shrink-0"
                            variant={'outline'}
                         >
@@ -125,12 +122,16 @@ export default function WaterEntryDrawer({
                         </Button>
                      ))}
                   </div>
-                  <ScrollBar orientation="horizontal"/>
+                  <ScrollBar orientation="horizontal" />
                </ScrollArea>
-               {/* Add new quick add button, off to the right */}
+
+               {/* Add new quick add button */}
                <Button
                   className="px-2 py-2 rounded-full text-lg shrink-0"
-                  onClick={() => console.log('Add new quick add')}
+                  onClick={() => {
+                     const newValue = 16;
+                     saveQuickAdds([...quickAdds, newValue]);
+                  }}
                >
                   <Plus />
                </Button>
@@ -138,7 +139,6 @@ export default function WaterEntryDrawer({
 
             {/* Drawer Footer */}
             <DrawerFooter className="flex flex-col space-y-2 p-6">
-               {/* Conditionally Render Add or Save Buttons */}
                {!isEditing && (
                   <Button
                      onClick={onSaveCustom}
@@ -150,7 +150,9 @@ export default function WaterEntryDrawer({
 
                {isEditing && (
                   <Button
-                     onClick={onSaveQuickAdd}
+                     onClick={() => {
+                        setIsEditing(false);
+                     }}
                      className="px-6 py-3 rounded-xl text-xl"
                   >
                      Save Quick Add
