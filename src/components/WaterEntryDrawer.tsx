@@ -85,6 +85,8 @@ export default function WaterEntryDrawer({
 
    const handleSaveQuickAdd = () => {
       if (editingIndex !== null) {
+         if(checkForDuplicate())
+            return;
          const updatedQuickAdds = [...quickAdds];
          updatedQuickAdds[editingIndex] = value; // Save the new value
          saveQuickAdds(updatedQuickAdds);
@@ -105,18 +107,23 @@ export default function WaterEntryDrawer({
    };
 
    const handleNewQuickAdd = () => {
-      if (quickAdds.includes(value)) {
-         toast({
-            title: "Duplicate Quick Add",
-            description: "You already have a quick add for " + value + " oz",
-            duration: 5000
-         })
+      if (checkForDuplicate())
          return;
-      }
-
       setQuickAdds([...quickAdds, value]);
       setMode('add');
    };
+
+   const checkForDuplicate = () => {
+      if (quickAdds.includes(value)) {
+         toast({
+            title: 'Duplicate Quick Add',
+            description:
+               'You already have a quick add for ' + value + ' oz',
+            duration: 5000,
+         });
+         return true;
+      }
+   }
 
    return (
       <Drawer open={isOpen} onClose={onClose}>
@@ -133,7 +140,7 @@ export default function WaterEntryDrawer({
                <DrawerTitle className='text-3xl'>{mode === 'add' ? 'Add Custom Amount' : (mode === 'edit' ? 'Edit Quick Add' : 'New Quick Add')}</DrawerTitle>
             </DrawerHeader>
             <div className='p-6 pb-0'>
-               <div className='flex items-center justify-center space-x-4'>
+               <div className='flex flex-row items-center'>
                   <Button
                      variant='outline'
                      size='icon'
@@ -165,6 +172,9 @@ export default function WaterEntryDrawer({
                </div>
             </div>
 
+
+            {/* Drawer Footer */}
+            <DrawerFooter className='flex flex-col'>
             {/* Quick Add Horizontal Scroll Area */}
             <div className='flex flex-row align-center justify-center px-6 pt-2'>
                <ScrollArea>
@@ -195,13 +205,10 @@ export default function WaterEntryDrawer({
                   <Plus />
                </Button>
             </div>
-
-            {/* Drawer Footer */}
-            <DrawerFooter className='flex flex-col'>
                <div className='relative h-12'>
                   <Button
                      onClick={onSaveCustom}
-                     className={`px-6 py-3 rounded-xl text-xl absolute inset-0 transition-all duration-300 ease-in-out transform ${mode === 'add' ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'}`}
+                     className={`px-6 py-3 rounded-xl text-xl absolute inset-0 transition-all duration-300 ease-in-out transform ${mode === 'add' ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
                   >
                      <span>Add Custom Amount</span>
                   </Button>
