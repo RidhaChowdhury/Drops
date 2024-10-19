@@ -9,7 +9,7 @@ import Log from '@/screens/Log';
 import SettingsScreen from '@/screens/Settings';
 import TabNavigation from '@/components/TabNavigation';
 
-import { Toaster } from '@/components/base-ui/sonner';
+import { Toaster } from '@/components/base-ui/toaster';
 
 export default function App() {
    const [selectedTab, setSelectedTab] = useState('water');
