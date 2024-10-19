@@ -11,6 +11,7 @@ import {
 import { Plus, Minus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/hooks/theme-provider';
+import { useToast } from '@/hooks/use-toast';
 
 type WaterEntryDrawerProps = {
    isOpen: boolean;
@@ -42,8 +43,8 @@ export default function WaterEntryDrawer({
    const [quickAdds, setQuickAdds] = useState<number[]>(() =>
       JSON.parse(localStorage.getItem('quickAddValues') || '[8, 16]')
    );
-   const [longPressTimeout, setLongPressTimeout] =
-      useState<NodeJS.Timeout | null>(null);
+   const [longPressTimeout, setLongPressTimeout] = useState<NodeJS.Timeout | null>(null);
+   const { toast } = useToast();
 
    // Reset the edit mode when the drawer is closed
    useEffect(() => {
@@ -104,9 +105,18 @@ export default function WaterEntryDrawer({
    };
 
    const handleNewQuickAdd = () => {
+      if (quickAdds.includes(value)) {
+         toast({
+            title: "Duplicate Quick Add",
+            description: "You already have a quick add for " + value + " oz",
+            duration: 5000
+         })
+         return;
+      }
+
       setQuickAdds([...quickAdds, value]);
       setMode('add');
-   }
+   };
 
    return (
       <Drawer open={isOpen} onClose={onClose}>
