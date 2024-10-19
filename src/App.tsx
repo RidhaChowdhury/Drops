@@ -11,8 +11,52 @@ import TabNavigation from '@/components/TabNavigation';
 
 import { Toaster } from '@/components/base-ui/sonner';
 
+import useSQLiteDB from './db/useSQLiteDB';
+import { SQLiteDBConnection } from '@capacitor-community/sqlite';
+
+import { useEffect } from 'react';
+
+
+type SQLItem = {
+  id: number;
+  name: string;
+};
+
 export default function App() {
    const [selectedTab, setSelectedTab] = useState('water');
+   const {performSQLAction, initialized} = useSQLiteDB();
+   const [items, setItems] = useState<Array<SQLItem>>();
+
+   useEffect(()=>{
+      loadData();
+      // CREATE TABLE IF NOT EXISTS test (
+      // id INTEGER PRIMARY KEY NOT NULL,
+      // name TEXT NOT NULL
+      performSQLAction(async (db: SQLiteDBConnection | undefined) => {
+        const respSelect = await db?.query(`INSERT into test (name) values ('MEESTERJORGE');`);
+        setItems(respSelect?.values);
+      });
+      performSQLAction(
+        async (db: SQLiteDBConnection | undefined) => {
+          // update ui
+          const respSelect = await db?.query(`SELECT * FROM test;`);
+          setItems(respSelect?.values);
+        });
+      console.log("items are" + items);
+   }, [initialized]);
+
+   const loadData = async () => {
+    try {
+      // query db
+      performSQLAction(async (db: SQLiteDBConnection | undefined) => {
+        const respSelect = await db?.query(`SELECT * FROM test`);
+        setItems(respSelect?.values);
+      });
+    } catch (error) {
+      alert((error as Error).message);
+      setItems([]);
+    }
+  };
 
    const tabs = [
       { label: 'Water', value: 'water' },
@@ -60,9 +104,12 @@ export default function App() {
                      </div>
                      <div className="w-full min-h-screen absolute top-0 left-full">
                         <div className="flex justify-center items-center h-full w-full min-h-screen">
-                           <p className="text-2xl">
-                              Metrics Screen Placeholder
-                           </p>
+                                   <h1>Stuff</h1>
+                                   {items?.map((item, index) => (
+                                       <div key={index}>
+                                          <p>{item.name}</p>
+                                       </div>
+                                    ))}
                         </div>
                      </div>
                      <div className="w-full min-h-screen absolute top-0 left-[200%]">
