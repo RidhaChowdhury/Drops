@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/base-ui/button';
 import { Card, CardHeader, CardContent } from '@/components/base-ui/card';
-import { ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, Flame } from 'lucide-react';
 
 // Custom Circular Progress component
 const CircularProgress = ({
@@ -142,9 +142,13 @@ const HydrationHistoryCalendar = () => {
    return (
       <Card className="max-w-md mx-auto mt-6">
          <CardHeader>
-            <h2 className="text-lg font-semibold">
-               Hydration History
-            </h2>
+            <div className='flex flex-row justify-between'>
+               <h2 className="text-lg font-semibold">Hydration History</h2>
+               <div className='flex flex-row'>
+                  <h2 className="text-lg font-semibold">3</h2>
+                  <Flame className='text-orange-500'/>
+               </div>
+            </div>
          </CardHeader>
          <CardContent>
             <div
