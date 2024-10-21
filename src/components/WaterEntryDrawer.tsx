@@ -62,7 +62,7 @@ export default function WaterEntryDrawer({
    };
 
    const handleQuickAddClick = (amount: number) => {
-      if (mode === 'add') {
+      if (mode === 'add' || mode ==='open') {
          onQuickAdd(amount);
          onClose();
       }
@@ -250,24 +250,24 @@ export default function WaterEntryDrawer({
                   )}
                </div>
                {mode === 'edit' && (
-                  <Button
-                     onClick={handleDeleteQuickAdd}
-                     className="px-6 py-3 rounded-xl text-xl"
-                     variant="destructive"
-                  >
-                     Delete Quick Add
-                  </Button>
-               )}
-               {mode === 'new' && (
-                  <Button
-                     onClick={() => {
-                        setMode('open');
-                     }}
-                     className="px-6 py-3 rounded-xl text-xl"
-                     variant="default"
-                  >
-                     Cancel
-                  </Button>
+                  <>
+                     <Button
+                        onClick={handleDeleteQuickAdd}
+                        className="px-6 py-3 rounded-xl text-xl"
+                        variant="destructive"
+                     >
+                        Delete Quick Add
+                     </Button>
+                     <Button
+                        onClick={() => {
+                           setMode('open');
+                        }}
+                        className="px-6 py-3 rounded-xl text-xl"
+                        variant="outline"
+                     >
+                        Cancel
+                     </Button>
+                  </>
                )}
             </DrawerFooter>
          </DrawerContent>
