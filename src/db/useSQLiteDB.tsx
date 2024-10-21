@@ -59,15 +59,18 @@ const useSQLiteDB = () => {
   };
 
   /**
-   * here is where you cna check and update table
+   * here is where you can check and update table
    * structure
    */
   const initializeTables = async () => {
     performSQLAction(async (db: SQLiteDBConnection | undefined) => {
       const queryCreateTable = `
-      CREATE TABLE IF NOT EXISTS test (
-      name TEXT NOT NULL
-      );
+        CREATE TABLE IF NOT EXISTS water_intake (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            amount INTEGER NOT NULL,
+            drink_type TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        );
     `;
       const respCT = await db?.execute(queryCreateTable);
       console.log(`res: ${JSON.stringify(respCT)}`);
