@@ -8,6 +8,7 @@ import {
    DrawerTitle,
    DrawerFooter,
 } from '@/components/base-ui/drawer';
+import { Separator } from '@/components/base-ui/separator';
 import { Plus, Minus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/hooks/theme-provider';
@@ -38,7 +39,7 @@ export default function WaterEntryDrawer({
    onQuickAdd, // Add this new prop
 }: WaterEntryDrawerProps) {
    const { theme } = useTheme();
-   const [mode, setMode] = useState<'add'| 'edit' | 'new'>();
+   const [mode, setMode] = useState<'open' | 'add'| 'edit' | 'new'>();
    const [editingIndex, setEditingIndex] = useState<number | null>(null); // Track which quick add is being edited
    const [quickAdds, setQuickAdds] = useState<number[]>(() =>
       JSON.parse(localStorage.getItem('quickAddValues') || '[8, 16]')
@@ -49,7 +50,7 @@ export default function WaterEntryDrawer({
    // Reset the edit mode when the drawer is closed
    useEffect(() => {
       if (!isOpen) {
-         setMode('add'); // Reset edit mode when drawer closes
+         setMode('open'); // Reset edit mode when drawer closes
          setEditingIndex(null); // Reset the index of the quick add being edited
       }
    }, [isOpen]);
@@ -91,7 +92,7 @@ export default function WaterEntryDrawer({
          updatedQuickAdds[editingIndex] = value; // Save the new value
          saveQuickAdds(updatedQuickAdds);
          setEditingIndex(null); // Reset editing state
-         setMode('add');
+         setMode('open');
       }
    };
 
@@ -102,7 +103,7 @@ export default function WaterEntryDrawer({
          );
          saveQuickAdds(updatedQuickAdds);
          setEditingIndex(null); // Reset editing state
-         setMode('add');
+         setMode('open');
       }
    };
 
@@ -110,7 +111,7 @@ export default function WaterEntryDrawer({
       if (checkForDuplicate())
          return;
       setQuickAdds([...quickAdds, value]);
-      setMode('add');
+      setMode('open');
    };
 
    const checkForDuplicate = () => {
@@ -126,122 +127,144 @@ export default function WaterEntryDrawer({
    }
 
    return (
-      <Drawer open={isOpen} onClose={onClose}>
+      <Drawer open={isOpen} onClose={onClose} snapPoints={[1]}>
          <DrawerContent
             className={`${
                theme === 'dark'
                   ? 'bg-gray-800 text-white'
                   : 'bg-white text-black'
-            } transition-all duration-300 ease-in-out ${
-               mode != 'add' ? 'max-h-[600px]' : 'max-h-[400px]'
             } overflow-hidden`}
          >
             <DrawerHeader>
-               <DrawerTitle className='text-3xl'>{mode === 'add' ? 'Add Custom Amount' : (mode === 'edit' ? 'Edit Quick Add' : 'New Quick Add')}</DrawerTitle>
+               <DrawerTitle className="text-3xl">
+                  {mode ==='open' 
+                     ? 'Log Water'
+                     : mode === 'add'
+                        ? 'Add Custom Amount'
+                        : mode === 'edit'
+                        ? 'Edit Quick Add'
+                        :'New Quick Add'}
+               </DrawerTitle>
             </DrawerHeader>
-            <div className='p-6 pb-0'>
-               <div className='flex flex-row items-center'>
+            {mode != 'open' && (<div className="p-6 pb-0">
+               <div className="flex flex-row items-center">
                   <Button
-                     variant='outline'
-                     size='icon'
-                     className='h-12 w-12 shrink-0 rounded-full'
+                     variant="outline"
+                     size="icon"
+                     className="h-12 w-12 shrink-0 rounded-full"
                      onClick={onDecrease}
                      disabled={value <= 1}
                   >
                      <Minus />
                   </Button>
-                  <div className='flex-1 text-center'>
+                  <div className="flex-1 text-center">
                      <input
-                        type='number'
+                        type="number"
                         value={value}
                         onChange={onChange}
                         onBlur={onBlur}
-                        className='text-8xl font-bold tracking-tighter bg-transparent border-none text-center w-40'
-                        inputMode='numeric'
+                        className="text-8xl font-bold tracking-tighter bg-transparent border-none text-center w-40"
+                        inputMode="numeric"
                      />
-                     <div className='text-xl uppercase mt-2'>Ounces</div>
+                     <div className="text-xl uppercase mt-2">Ounces</div>
                   </div>
                   <Button
-                     variant='outline'
-                     size='icon'
-                     className='h-12 w-12 shrink-0 rounded-full'
+                     variant="outline"
+                     size="icon"
+                     className="h-12 w-12 shrink-0 rounded-full"
                      onClick={onIncrease}
                   >
                      <Plus />
                   </Button>
                </div>
-            </div>
-
+            </div>)}
 
             {/* Drawer Footer */}
-            <DrawerFooter className='flex flex-col'>
-            {/* Quick Add Horizontal Scroll Area */}
-            <div className='flex flex-row align-center justify-center px-6 pt-2'>
-               <ScrollArea>
-                  <div className='flex w-max space-x-4 pb-2'>
-                     {quickAdds.map((amount, index) => (
-                        <Button
-                           key={index}
-                           onClick={() => handleQuickAddClick(amount)} // Only trigger click if not in editing mode
-                           onMouseDown={() => handleMouseDown(index)} // Start long press
-                           onMouseUp={handleMouseUp} // Cancel long press
-                           className='px-4 rounded-xl text-lg shrink-0'
-                           variant={'outline'}
-                        >
-                           {amount} oz
-                        </Button>
-                     ))}
+            <DrawerFooter className="flex flex-col">
+               {/* Quick Add Horizontal Scroll Area */}
+               {mode === 'open' && (
+                  <>
+                     <div className="flex flex-row align-center justify-center px-6 pt-2">
+                     <ScrollArea>
+                        <div className="flex w-max space-x-4 pb-2">
+                           {quickAdds.map((amount, index) => (
+                              <Button
+                                 key={index}
+                                 onClick={() => handleQuickAddClick(amount)} // Only trigger click if not in editing mode
+                                 onMouseDown={() => handleMouseDown(index)} // Start long press
+                                 onMouseUp={handleMouseUp} // Cancel long press
+                                 className="px-4 py-6 rounded-xl text-2xl shrink-0"
+                                 variant={'outline'}
+                              >
+                                 {amount} oz
+                              </Button>
+                           ))}
+                        </div>
+                        <ScrollBar orientation="horizontal" />
+                     </ScrollArea>
+
+                     {/* Add new quick add button */}
+                     <Button
+                        className="px-3 py-6 ml-2 rounded-full text-2xl shrink-0"
+                        onClick={() => {
+                           setMode('new');
+                        }}
+                     >
+                        <Plus />
+                     </Button>
                   </div>
-                  <ScrollBar orientation='horizontal' />
-               </ScrollArea>
+                  <Separator orientation='horizontal'/>
+               </>
+               )}
+               <div className="relative h-12">
+                  {(mode === 'add' || mode === 'open') && (
+                     <Button
+                        onClick={() => {
+                           if(mode === 'open')
+                              setMode('add');
+                           else
+                              onSaveCustom();
+                        }}
+                        className={`px-6 py-3 rounded-xl text-xl w-full`}
+                     >
+                        <span>Add Custom Amount</span>
+                     </Button>
+                  )}
 
-               {/* Add new quick add button */}
-               <Button
-                  className='px-2 py-2 ml-2 rounded-full text-lg shrink-0'
-                  onClick={() => {
-                     setMode('new');
-                  }}
-               >
-                  <Plus />
-               </Button>
-            </div>
-               <div className='relative h-12'>
-                  <Button
-                     onClick={onSaveCustom}
-                     className={`px-6 py-3 rounded-xl text-xl absolute inset-0 transition-all duration-300 ease-in-out transform ${mode === 'add' ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
-                  >
-                     <span>Add Custom Amount</span>
-                  </Button>
+                  {mode === 'edit' && (
+                     <Button
+                        onClick={handleSaveQuickAdd}
+                        className={`px-6 py-3 rounded-xl text-xl  w-full`}
+                     >
+                        Save Quick Add
+                     </Button>
+                  )}
 
-                  <Button
-                     onClick={handleSaveQuickAdd}
-                     className={`px-6 py-3 rounded-xl text-xl absolute inset-0 transition-all duration-300 ease-in-out transform ${mode === 'edit' ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
-                  >
-                     Save Quick Add
-                  </Button>
-
-                  <Button
-                     onClick={handleNewQuickAdd}
-                     className={`px-6 py-3 rounded-xl text-xl absolute inset-0 transition-all duration-300 ease-in-out transform ${mode === 'new' ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
-                  >
-                     Create Quick Add
-                  </Button>
+                  {mode === 'new' && (
+                     <Button
+                        onClick={handleNewQuickAdd}
+                        className={`px-6 py-3 rounded-xl text-xl w-full`}
+                     >
+                        Create Quick Add
+                     </Button>
+                  )}
                </div>
-               {mode === 'edit' ? (
+               {mode === 'edit' && (
                   <Button
                      onClick={handleDeleteQuickAdd}
-                     className='px-6 py-3 rounded-xl text-xl'
-                     variant='destructive'
+                     className="px-6 py-3 rounded-xl text-xl"
+                     variant="destructive"
                   >
                      Delete Quick Add
                   </Button>
-               ) : (
+               )}
+               {mode === 'new' && (
                   <Button
                      onClick={() => {
-                        setMode('add');
+                        setMode('open');
                      }}
-                     className='px-6 py-3 rounded-xl text-xl'
-                     variant='outline'
+                     className="px-6 py-3 rounded-xl text-xl"
+                     variant="default"
                   >
                      Cancel
                   </Button>
