@@ -21,6 +21,7 @@ import {
    SelectValue,
    SelectGroup,
 } from '@/components/base-ui/select';
+import { Label } from './base-ui/label';
 
 type WaterEntryDrawerProps = {
    isOpen: boolean;
@@ -174,59 +175,57 @@ export default function WaterEntryDrawer({
                          : 'New Quick Add'}
                </DrawerTitle>
             </DrawerHeader>
-            {mode != 'open' && (
-               <div className="p-6 pb-0">
-                  <div className="flex flex-row items-center">
-                     <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-12 w-12 shrink-0 rounded-full"
-                        onClick={onDecrease}
-                        disabled={value <= 1}
-                     >
-                        <Minus />
-                     </Button>
-                     <div className="flex-1 text-center">
-                        <input
-                           type="number"
-                           value={value}
-                           onChange={onChange}
-                           onBlur={onBlur}
-                           className="text-8xl font-bold tracking-tighter bg-transparent border-none text-center w-40"
-                           inputMode="numeric"
-                        />
-                        <div className="text-xl uppercase mt-2">Ounces</div>
+            <div className="p-4 pb-0">
+               {mode != 'open' && (
+                     <div className="flex flex-row items-center">
+                        <Button
+                           variant="outline"
+                           size="icon"
+                           className="h-12 w-12 shrink-0 rounded-full"
+                           onClick={onDecrease}
+                           disabled={value <= 1}
+                        >
+                           <Minus />
+                        </Button>
+                        <div className="flex-1 text-center">
+                           <input
+                              type="number"
+                              value={value}
+                              onChange={onChange}
+                              onBlur={onBlur}
+                              className="text-8xl font-bold tracking-tighter bg-transparent border-none text-center w-40"
+                              inputMode="numeric"
+                           />
+                           <div className="text-xl uppercase mt-2">Ounces</div>
+                        </div>
+                        <Button
+                           variant="outline"
+                           size="icon"
+                           className="h-12 w-12 shrink-0 rounded-full"
+                           onClick={onIncrease}
+                        >
+                           <Plus />
+                        </Button>
                      </div>
-                     <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-12 w-12 shrink-0 rounded-full"
-                        onClick={onIncrease}
-                     >
-                        <Plus />
-                     </Button>
-                  </div>
-               </div>
-            )}
+               )}
 
-            {/* Drawer Footer */}
-            <DrawerFooter className="flex flex-col">
                {/* Quick Add Horizontal Scroll Area */}
                {mode === 'open' && (
                   <>
+                     <Label>Quick Adds</Label>
                      <div className="flex flex-row items-center justify-center pt-2 pr-14 relative">
                         {/* Scroll Area */}
                         <ScrollArea className="w-full">
                            <div className="flex pb-2 pr-4 space-x-4">
                               {quickAdds.map((amount, index) => (
                                  <Button
-                                    key={index}
-                                    onClick={() => handleQuickAddClick(amount)}
+                                 key={index}
+                                 onClick={() => handleQuickAddClick(amount)}
                                     onMouseDown={() => handleMouseDown(index)}
                                     onMouseUp={handleMouseUp}
                                     className="px-4 py-6 rounded-xl text-2xl shrink-0"
                                     variant="outline"
-                                 >
+                                    >
                                     {amount} oz
                                  </Button>
                               ))}
@@ -250,33 +249,40 @@ export default function WaterEntryDrawer({
                   </>
                )}
                {(mode == 'add' || mode == 'open') && (
-                  <div className="flex items-center">
-                     <Select
-                        value={drinkType}
-                        onValueChange={(value) => setDrinkType(value)}
-                     >
-                        <SelectTrigger className="w-full justify-between px-4 py-4 rounded-xl text-xl">
-                           <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                           <SelectGroup>
-                              {drinkTypes.map((type) => (
-                                 <SelectItem
-                                    key={type.value}
-                                    value={type.value}
-                                    className="text-xl"
-                                 >
-                                    {type.label}
-                                 </SelectItem>
-                              ))}
-                           </SelectGroup>
-                        </SelectContent>
-                     </Select>
-                     <p className="ml-4 text-2xl bold">
-                        {(getHydrationFactor(drinkType) ?? 0) * 100}%
-                     </p>
-                  </div>
+                  <>
+                     <Label>Drink Type</Label>
+                     <div className="flex items-center">
+                        <Select
+                           value={drinkType}
+                           onValueChange={(value) => setDrinkType(value)}
+                           >
+                           <SelectTrigger className="w-full justify-between px-4 py-4 rounded-xl text-xl">
+                              <SelectValue />
+                           </SelectTrigger>
+                           <SelectContent className="rounded-xl">
+                              <SelectGroup>
+                                 {drinkTypes.map((type) => (
+                                    <SelectItem
+                                       key={type.value}
+                                       value={type.value}
+                                       className="text-xl"
+                                       >
+                                       {type.label}
+                                    </SelectItem>
+                                 ))}
+                              </SelectGroup>
+                           </SelectContent>
+                        </Select>
+                        <p className="ml-4 text-2xl bold">
+                           {(getHydrationFactor(drinkType) ?? 0) * 100}%
+                        </p>
+                     </div>
+                  </>
                )}
+            </div>
+
+            {/* Drawer Footer */}
+            <DrawerFooter className="flex flex-col">
                <Separator orientation="horizontal" />
                <div className="relative h-12">
                   {(mode === 'add' || mode === 'open') && (
