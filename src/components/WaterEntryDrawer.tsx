@@ -133,12 +133,6 @@ export default function WaterEntryDrawer({
       }
    };
 
-   type DrinkType = {
-      value: string;
-      label: string;
-      hydrationFactor: number;
-   };
-
    const drinkTypes = [
       { value: 'juice', label: 'Juice', hydrationFactor: 0.80 },
       { value: 'milk', label: 'Milk', hydrationFactor: 0.9 },
@@ -153,7 +147,6 @@ export default function WaterEntryDrawer({
    };
 
    const [drinkType, setDrinkType] = useState('water'); // State for drink type selection
-   const [comboBoxOpen, setComboBoxOpen] = useState(false); // State for ComboBox open
 
    return (
       <Drawer open={isOpen} onClose={onClose} snapPoints={[1]}>
