@@ -282,16 +282,15 @@ export default function WaterEntryDrawer({
             </div>
 
             {/* Drawer Footer */}
-            <DrawerFooter className="flex flex-col">
+            <DrawerFooter className="flex flex-col gap-3">
                <Separator orientation="horizontal" />
-               <div className="relative h-12">
                   {(mode === 'add' || mode === 'open') && (
                      <Button
                         onClick={() => {
                            if (mode === 'open') setMode('add');
                            else onSaveCustom();
                         }}
-                        className={`px-6 py-3 rounded-xl text-xl w-full`}
+                        className={`px-6 rounded-xl text-xl w-full`}
                      >
                         <span>Add Custom Amount</span>
                      </Button>
@@ -300,7 +299,7 @@ export default function WaterEntryDrawer({
                   {mode === 'edit' && (
                      <Button
                         onClick={handleSaveQuickAdd}
-                        className={`px-6 py-3 rounded-xl text-xl  w-full`}
+                        className={`px-6 rounded-xl text-xl  w-full`}
                      >
                         Save Quick Add
                      </Button>
@@ -309,17 +308,16 @@ export default function WaterEntryDrawer({
                   {mode === 'new' && (
                      <Button
                         onClick={handleNewQuickAdd}
-                        className={`px-6 py-3 rounded-xl text-xl w-full`}
+                        className={`px-6 rounded-xl text-xl w-full`}
                      >
                         Create Quick Add
                      </Button>
                   )}
-               </div>
                {mode === 'edit' && (
                   <>
                      <Button
                         onClick={handleDeleteQuickAdd}
-                        className="px-6 py-3 rounded-xl text-xl"
+                        className="px-6 rounded-xl text-xl"
                         variant="destructive"
                      >
                         Delete Quick Add
@@ -331,7 +329,7 @@ export default function WaterEntryDrawer({
                      if (mode !== 'open') setMode('open');
                      else onClose();
                   }}
-                  className="px-6 py-3 rounded-xl text-xl"
+                  className="px-6 rounded-xl text-xl"
                   variant="outline"
                >
                   Cancel
