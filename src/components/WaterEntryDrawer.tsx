@@ -214,10 +214,10 @@ export default function WaterEntryDrawer({
                {/* Quick Add Horizontal Scroll Area */}
                {mode === 'open' && (
                   <>
-                     <div className="flex flex-row align-center justify-center pt-2 relative">
+                     <div className="flex flex-row items-center justify-center pt-2 pr-14 relative">
                         {/* Scroll Area */}
-                        <ScrollArea>
-                           <div className="flex w-max space-x-4 pb-2 relative overflow-x-auto">
+                        <ScrollArea className="w-full">
+                           <div className="flex pb-2 pr-4 space-x-4">
                               {quickAdds.map((amount, index) => (
                                  <Button
                                     key={index}
@@ -225,7 +225,7 @@ export default function WaterEntryDrawer({
                                     onMouseDown={() => handleMouseDown(index)}
                                     onMouseUp={handleMouseUp}
                                     className="px-4 py-6 rounded-xl text-2xl shrink-0"
-                                    variant={'outline'}
+                                    variant="outline"
                                  >
                                     {amount} oz
                                  </Button>
@@ -234,9 +234,12 @@ export default function WaterEntryDrawer({
                            <ScrollBar orientation="horizontal" />
                         </ScrollArea>
 
+                        {/* Fade overlay */}
+                        <div className="absolute right-12 top-0 h-full w-16 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+
                         {/* Add new quick add button */}
                         <Button
-                           className="px-3 py-6 ml-2 rounded-full text-2xl shrink-0 relative z-10"
+                           className="absolute right-0 top-2 px-3 py-6 rounded-full text-2xl"
                            onClick={() => {
                               setMode('new');
                            }}
