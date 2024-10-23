@@ -170,36 +170,36 @@ export default function WaterEntryDrawer({
             </DrawerHeader>
             <div className="p-4 pb-0">
                {mode != 'open' && (
-                     <div className="flex flex-row items-center">
-                        <Button
-                           variant="outline"
-                           size="icon"
-                           className="h-12 w-12 shrink-0 rounded-full"
-                           onClick={onDecrease}
-                           disabled={value <= 1}
-                        >
-                           <Minus />
-                        </Button>
-                        <div className="flex-1 text-center">
-                           <input
-                              type="number"
-                              value={value}
-                              onChange={onChange}
-                              onBlur={onBlur}
-                              className="text-8xl font-bold tracking-tighter bg-transparent border-none text-center w-40"
-                              inputMode="numeric"
-                           />
-                           <div className="text-xl uppercase mt-2">Ounces</div>
-                        </div>
-                        <Button
-                           variant="outline"
-                           size="icon"
-                           className="h-12 w-12 shrink-0 rounded-full"
-                           onClick={onIncrease}
-                        >
-                           <Plus />
-                        </Button>
+                  <div className="flex flex-row items-center">
+                     <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 shrink-0 rounded-full"
+                        onClick={onDecrease}
+                        disabled={value <= 1}
+                     >
+                        <Minus />
+                     </Button>
+                     <div className="flex-1 text-center">
+                        <input
+                           type="number"
+                           value={value}
+                           onChange={onChange}
+                           onBlur={onBlur}
+                           className="text-8xl font-bold tracking-tighter bg-transparent border-none text-center w-40"
+                           inputMode="numeric"
+                        />
+                        <div className="text-xl uppercase mt-2">Ounces</div>
                      </div>
+                     <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 shrink-0 rounded-full"
+                        onClick={onIncrease}
+                     >
+                        <Plus />
+                     </Button>
+                  </div>
                )}
 
                {/* Quick Add Horizontal Scroll Area */}
@@ -212,13 +212,13 @@ export default function WaterEntryDrawer({
                            <div className="flex pb-2 pr-4 space-x-4">
                               {quickAdds.map((amount, index) => (
                                  <Button
-                                 key={index}
-                                 onClick={() => handleQuickAddClick(amount)}
+                                    key={index}
+                                    onClick={() => handleQuickAddClick(amount)}
                                     onMouseDown={() => handleMouseDown(index)}
                                     onMouseUp={handleMouseUp}
                                     className="px-4 py-6 rounded-xl text-2xl shrink-0"
                                     variant="outline"
-                                    >
+                                 >
                                     {amount} oz
                                  </Button>
                               ))}
@@ -227,7 +227,9 @@ export default function WaterEntryDrawer({
                         </ScrollArea>
 
                         {/* Fade overlay */}
-                        <div className="absolute right-12 top-0 h-full w-16 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+                        <div
+                           className={`absolute right-12 top-0 h-full w-16 bg-gradient-to-l ${theme === 'dark' ? 'from-black' : 'from-white'}  to-transparent pointer-events-none`}
+                        />
 
                         {/* Add new quick add button */}
                         <Button
@@ -248,7 +250,7 @@ export default function WaterEntryDrawer({
                         <Select
                            value={drinkType}
                            onValueChange={(value) => setDrinkType(value)}
-                           >
+                        >
                            <SelectTrigger className="w-full justify-between px-4 py-4 rounded-xl text-xl">
                               <SelectValue />
                            </SelectTrigger>
@@ -259,7 +261,7 @@ export default function WaterEntryDrawer({
                                        key={type.value}
                                        value={type.value}
                                        className="text-xl"
-                                       >
+                                    >
                                        {type.label}
                                     </SelectItem>
                                  ))}
@@ -277,35 +279,35 @@ export default function WaterEntryDrawer({
             {/* Drawer Footer */}
             <DrawerFooter className="flex flex-col gap-3">
                <Separator orientation="horizontal" />
-                  {(mode === 'add' || mode === 'open') && (
-                     <Button
-                        onClick={() => {
-                           if (mode === 'open') setMode('add');
-                           else onSaveCustom();
-                        }}
-                        className={`px-6 rounded-xl text-xl w-full`}
-                     >
-                        <span>Add Custom Amount</span>
-                     </Button>
-                  )}
+               {(mode === 'add' || mode === 'open') && (
+                  <Button
+                     onClick={() => {
+                        if (mode === 'open') setMode('add');
+                        else onSaveCustom();
+                     }}
+                     className={`px-6 rounded-xl text-xl w-full`}
+                  >
+                     <span>Add Custom Amount</span>
+                  </Button>
+               )}
 
-                  {mode === 'edit' && (
-                     <Button
-                        onClick={handleSaveQuickAdd}
-                        className={`px-6 rounded-xl text-xl  w-full`}
-                     >
-                        Save Quick Add
-                     </Button>
-                  )}
+               {mode === 'edit' && (
+                  <Button
+                     onClick={handleSaveQuickAdd}
+                     className={`px-6 rounded-xl text-xl  w-full`}
+                  >
+                     Save Quick Add
+                  </Button>
+               )}
 
-                  {mode === 'new' && (
-                     <Button
-                        onClick={handleNewQuickAdd}
-                        className={`px-6 rounded-xl text-xl w-full`}
-                     >
-                        Create Quick Add
-                     </Button>
-                  )}
+               {mode === 'new' && (
+                  <Button
+                     onClick={handleNewQuickAdd}
+                     className={`px-6 rounded-xl text-xl w-full`}
+                  >
+                     Create Quick Add
+                  </Button>
+               )}
                {mode === 'edit' && (
                   <>
                      <Button
