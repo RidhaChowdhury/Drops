@@ -82,10 +82,10 @@ export default function SettingsScreen() {
                         updateMeasurementUnit(value)
                      }
                   >
-                     <SelectTrigger className="w-24 rounded-full border-2 border-transparent transition-colors bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white">
+                     <SelectTrigger className="w-24 rounded-xl border-2 border-transparent transition-colors bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white">
                         <SelectValue placeholder="Select unit" />
                      </SelectTrigger>
-                     <SelectContent className="rounded-lg">
+                     <SelectContent className="rounded-xl">
                         {units.map((unit) => (
                            <SelectItem key={unit} value={unit}>
                               {unit}
@@ -103,7 +103,7 @@ export default function SettingsScreen() {
                         type="number"
                         value={displayedDailyGoal.toFixed(1)} // Display converted daily goal
                         onChange={handleGoalChange} // Convert to ounces before dispatching
-                        className="w-28 rounded-full border-2 border-transparent bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
+                        className="w-28 rounded-xl bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
                      />
                      <span className="ml-2">{settings.measurementUnit}</span>
                   </div>
