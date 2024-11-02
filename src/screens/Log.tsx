@@ -106,50 +106,12 @@ export default function Log({ isActive }: { isActive: boolean }) {
          <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
             <div className="relative w-full" style={{ height: '105%' }}>
                <Wave
-                  fill={theme === 'dark' ? '#153366' : '#1E40AF'}
-                  paused={false}
-                  options={{
-                     height: 10,
-                     amplitude: 14,
-                     speed: 0.15,
-                     points: 2,
-                  }}
-                  style={{
-                     position: 'absolute',
-                     bottom: 0,
-                     width: '100%',
-                     height: `${(displayedIntake / displayedGoal) * 100 + 12}%`,
-                     transition: 'height 0.5s ease',
-                     zIndex: 0,
-                  }}
-               />
-
-               <Wave
-                  fill={theme === 'dark' ? '#17377A' : '#2563EB'}
-                  paused={false}
-                  options={{
-                     height: 10,
-                     amplitude: 12,
-                     speed: 0.2,
-                     points: 3,
-                  }}
-                  style={{
-                     position: 'absolute',
-                     bottom: 0,
-                     width: '100%',
-                     height: `${(waterIntake / dailyGoal) * 100 + 10}%`,
-                     transition: 'height 0.5s ease',
-                     zIndex: 1,
-                  }}
-               />
-
-               <Wave
                   fill={theme === 'dark' ? '#1E3A8A' : '#3B82F6'}
                   paused={false}
                   options={{
-                     height: 10,
+                     height: 0,
                      amplitude: 10,
-                     speed: 0.3,
+                     speed: 0.2,
                      points: 5,
                   }}
                   style={{
