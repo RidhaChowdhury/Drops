@@ -1,5 +1,8 @@
 import { useSettings } from '@/hooks/useSettings';
 import { useTheme } from '@/hooks/theme-provider';
+import { SQLiteDBConnection } from "@capacitor-community/sqlite";
+import useSQLiteDB from "../db/useSQLiteDB";
+
 
 import { convertFromOunces, convertToOunces } from '@/utils/conversionUtils';
 
@@ -26,7 +29,6 @@ export default function SettingsScreen() {
       updateDailyIntakeGoal,
       updateMeasurementUnit,
       toggleNotifications,
-      clearAllHistory,
       backupSettingsData,
       loadSettingsFromCSV,
    } = useSettings();
@@ -47,6 +49,9 @@ export default function SettingsScreen() {
       ); // Convert to ounces before dispatching
       updateDailyIntakeGoal(newGoalInOunces);
    };
+
+   // hook for sqlite db
+   const { performSQLAction } = useSQLiteDB();
 
    return (
       <div
@@ -161,8 +166,17 @@ export default function SettingsScreen() {
                   </Button>
                   <Button
                      variant="destructive"
-                     onClick={clearAllHistory}
-                     disabled={true}
+                     onClick={
+                        async () => {
+                           // Prompt the user for confirmation
+                           // const confirmed = window.confirm("Are you sure you want to clear the full history? This action cannot be undone.");
+                           // if (confirmed) {
+                              await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
+                                 await db?.run(`DELETE FROM water_intake`); 
+                              });
+                           // }
+                        }
+                     }
                   >
                      <Bomb className="mr-2 h-4 w-4" />
                      Clear Full History

@@ -8,10 +8,13 @@ import FAB from '@/components/extended-ui/fab';
 import FABRow from '@/components/extended-ui/fab-row';
 
 import { convertFromOunces, convertToOunces } from '@/utils/conversionUtils';
-import { getWaterHistory, saveWaterHistory } from '@/utils/storageUtils';
+import { getWaterHistory } from '@/utils/storageUtils';
 
 import { Droplet, RotateCcw, GlassWater } from 'lucide-react';
 import Wave from 'react-wavify';
+
+import { SQLiteDBConnection } from "@capacitor-community/sqlite";
+import useSQLiteDB from "../db/useSQLiteDB";
 
 export default function Log({ isActive }: { isActive: boolean }) {
    const { theme } = useTheme();
@@ -28,9 +31,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
    const [waterIntake, setWaterIntake] = useState(
       todayEntry ? todayEntry.intake : 0
    );
-   const [drinkLog, setDrinkLog] = useState(
-      todayEntry && todayEntry.drinkLog ? todayEntry.drinkLog : []
-   );
+
 
    const [isCustomDrawerOpen, setIsCustomDrawerOpen] = useState(false);
    const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
@@ -45,28 +46,102 @@ export default function Log({ isActive }: { isActive: boolean }) {
       }
    }, [isActive]);
 
-   useEffect(() => {
-      const updatedHistory = waterHistory.filter(
-         (entry) => entry.date !== currentDate
-      );
-      updatedHistory.push({ date: currentDate, intake: waterIntake, drinkLog });
-      saveWaterHistory(updatedHistory);
-   }, [waterIntake, drinkLog, currentDate]);
-
-   const handleUndo = () => {
-      if (drinkLog.length > 0) {
-         const lastDrink = drinkLog[drinkLog.length - 1];
-         setWaterIntake((prev) => Math.max(0, prev - lastDrink));
-         setDrinkLog((prev) => prev.slice(0, -1));
+   type LastDrinkResult = {
+      values: Array<{
+         id: number;
+         amount: number;
+      }>;
+   };
+   
+   const handleUndo = async () => {
+      try {
+         let lastDrinkResult: LastDrinkResult | undefined;
+   
+         // Step 1: Retrieve the most recent entry (highest id)
+         await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
+            lastDrinkResult = await db?.query(
+               `SELECT id, amount FROM water_intake ORDER BY id DESC LIMIT 1`
+            ) as LastDrinkResult; // Type assertion here
+         });
+   
+         // Check if there is a last drink entry
+         const lastDrink = lastDrinkResult?.values?.[0];
+         if (lastDrink) {
+            const lastDrinkAmount = lastDrink.amount;
+   
+            // Step 2: Delete the last drink entry by its id
+            await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
+               await db?.run(`DELETE FROM water_intake WHERE id = ?`, [lastDrink.id]);
+            });
+   
+            // Step 3: Update the water intake state
+            setWaterIntake((prev) => Math.max(0, prev - lastDrinkAmount));
+         }
+      } catch (error) {
+         console.error("Error in handleUndo:", error);
       }
    };
+   
+   
 
-   const handleAddWater = (amount: number) => {
-      const amountInOz = convertToOunces(amount, measurementUnit);
-      setWaterIntake((prev) => prev + amountInOz);
-      setDrinkLog((prev) => [...prev, amountInOz]);
+
+   // hook for sqlite db
+   const { performSQLAction, initialized } = useSQLiteDB();
+
+   useEffect(() => {
+      loadData();
+    }, [initialized]);
+  
+   /**
+    * do a select of the database
+    */
+   const loadData = async () => {
+   try {
+      // Step 2: Fetch the total intake for today
+      let totalIntake = 0;
+      await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
+         const result = await db?.query(
+            `SELECT SUM(amount) as totalIntake FROM water_intake WHERE DATE(timestamp) = DATE('now')`
+         );
+         totalIntake = result?.values?.[0]?.totalIntake ?? 0;
+      });
+
+      // Update state with the fetched total intake
+      setWaterIntake(totalIntake);
+   } catch (error) {
+      alert((error as Error).message);
+   }
    };
 
+   const handleAddWater = async (amount: number) => {
+      const amountInOz = convertToOunces(amount, measurementUnit);
+      const timestamp = new Date().toISOString(); // Only date part
+   
+      try {
+         // Step 1: Insert the new water intake record
+         await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
+            await db?.run(
+               `INSERT INTO water_intake (amount, drink_type, timestamp) VALUES (?, ?, ?)`,
+               [amountInOz, 'WATER', timestamp]
+            );
+         });
+   
+         // Step 2: Fetch the total intake for today
+         let totalIntake = 0;
+         await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
+            const result = await db?.query(
+               `SELECT SUM(amount) as totalIntake FROM water_intake WHERE DATE(timestamp) = DATE('now')`
+            );
+            totalIntake = result?.values?.[0]?.totalIntake ?? 0;
+         });
+   
+         // Update state with the fetched total intake
+         setWaterIntake(totalIntake);
+      } catch (error) {
+         console.error("Error in handleAddWater:", error);
+      }
+   };
+    
    const handleOpenCustomDrawer = () => {
       setNewQuickAddValue(16);
       setIsCustomDrawerOpen(true);

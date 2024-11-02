@@ -58,10 +58,7 @@ const useSQLiteDB = () => {
     }
   };
 
-  /**
-   * here is where you can check and update table
-   * structure
-   */
+  // create table
   const initializeTables = async () => {
     performSQLAction(async (db: SQLiteDBConnection | undefined) => {
       const queryCreateTable = `
