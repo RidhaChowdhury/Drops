@@ -168,13 +168,29 @@ export default function SettingsScreen() {
                      variant="destructive"
                      onClick={
                         async () => {
-                           // Prompt the user for confirmation
-                           // const confirmed = window.confirm("Are you sure you want to clear the full history? This action cannot be undone.");
-                           // if (confirmed) {
+                           const confirmed = window.confirm("Are you sure you want to clear the full history? This action cannot be undone.");
+                           if (confirmed) {
                               await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
-                                 await db?.run(`DELETE FROM water_intake`); 
+                                 try {
+                                    // Drop the table
+                                    await db?.query(`DROP TABLE IF EXISTS water_intake`);
+                                    console.log("Table dropped successfully");
+
+                                    // Recreate the table (adjust the schema as needed)
+                                    await db?.query(`
+                                       CREATE TABLE IF NOT EXISTS water_intake (
+                                          id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                          amount INTEGER NOT NULL,
+                                          drink_type TEXT NOT NULL,
+                                          timestamp TEXT NOT NULL
+                                    );
+                                    `);
+                                    console.log("Table recreated successfully");
+                                 } catch (error) {
+                                    console.error("Error resetting water_intake table:", error);
+                                 }
                               });
-                           // }
+                           }
                         }
                      }
                   >
