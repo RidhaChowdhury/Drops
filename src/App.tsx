@@ -10,6 +10,7 @@ import SettingsScreen from '@/screens/Settings';
 import TabNavigation from '@/components/TabNavigation';
 
 import { Toaster } from '@/components/base-ui/toaster';
+import MetricsScreen from './screens/Metrics';
 
 export default function App() {
    const [selectedTab, setSelectedTab] = useState('water');
@@ -59,11 +60,7 @@ export default function App() {
                         <Log isActive={selectedTab === 'water'} />
                      </div>
                      <div className="w-full min-h-screen absolute top-0 left-full">
-                        <div className="flex justify-center items-center h-full w-full min-h-screen">
-                           <p className="text-2xl">
-                              Metrics Screen Placeholder
-                           </p>
-                        </div>
+                        <MetricsScreen />
                      </div>
                      <div className="w-full min-h-screen absolute top-0 left-[200%]">
                         <SettingsScreen />
