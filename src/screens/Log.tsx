@@ -78,7 +78,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
    };
 
    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value === '' ? 16 : parseInt(e.target.value);
+      const value = e.target.value === '' ? 0 : parseInt(e.target.value);
       setNewQuickAddValue(value);
    };
 
