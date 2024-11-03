@@ -21,7 +21,7 @@ export default function TabNavigation({
 
    return (
       <div
-         className={`relative flex flex-col items-center justify-center min-h-screen overflow-hidden font-sans ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}
+         className={`${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}
       >
          <div className="fixed bottom-0 left-0 w-full flex">
             {tabs.map((tab) => {
