@@ -10,7 +10,7 @@ import FABRow from '@/components/extended-ui/fab-row';
 import { convertFromOunces, convertToOunces } from '@/utils/conversionUtils';
 import { getWaterHistory, saveWaterHistory } from '@/utils/storageUtils';
 
-import { Droplet, RotateCcw, GlassWater } from 'lucide-react';
+import { RotateCcw, GlassWater } from 'lucide-react';
 import Wave from 'react-wavify';
 
 export default function Log({ isActive }: { isActive: boolean }) {
@@ -92,16 +92,11 @@ export default function Log({ isActive }: { isActive: boolean }) {
    };
 
    const displayedIntake = convertFromOunces(waterIntake, measurementUnit);
-   const displayedGoal = convertFromOunces(dailyGoal, measurementUnit);
 
    return (
       <div
          className={`relative flex flex-col items-center justify-center min-h-screen overflow-hidden font-sans ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}
       >
-         <div className="absolute top-6 left-6 z-10">
-            <Droplet className="h-6 w-6" />
-         </div>
-
          {/* Stacked Waves */}
          <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden">
             <div className="relative w-full" style={{ height: '105%' }}>
