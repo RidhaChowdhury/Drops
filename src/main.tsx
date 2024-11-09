@@ -11,6 +11,9 @@ import {
 } from "@capacitor-community/sqlite";
 import { JeepSqlite } from "jeep-sqlite/dist/components/jeep-sqlite";
 
+import { Provider } from 'react-redux';
+import { store } from './state/store.ts';
+
 window.addEventListener("DOMContentLoaded", async () => {
    try {
      const platform = Capacitor.getPlatform();
@@ -35,7 +38,9 @@ window.addEventListener("DOMContentLoaded", async () => {
      const root = createRoot(container!);
      root.render(
        <React.StrictMode>
-         <App />
+        <Provider store={store}>
+          <App />
+        </Provider>
        </React.StrictMode>
      );
    } catch (e) {

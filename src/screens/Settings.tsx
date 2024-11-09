@@ -1,8 +1,8 @@
 import { useSettings } from '@/hooks/useSettings';
 import { useTheme } from '@/hooks/theme-provider';
-import { SQLiteDBConnection } from "@capacitor-community/sqlite";
-import useSQLiteDB from "../db/useSQLiteDB";
-
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/state/store';
+import { performSQLAction } from '@/state/databaseSlice';
 
 import { convertFromOunces, convertToOunces } from '@/utils/conversionUtils';
 
@@ -24,6 +24,7 @@ import { Sun, Moon, Bell, BellOff, FileDown, FileUp, Bomb } from 'lucide-react';
 
 export default function SettingsScreen() {
    const { theme, setTheme } = useTheme();
+   const dispatch = useDispatch<AppDispatch>();
    const {
       settings,
       updateDailyIntakeGoal,
@@ -46,16 +47,47 @@ export default function SettingsScreen() {
       const newGoalInOunces = convertToOunces(
          newGoalInUnit,
          settings.measurementUnit
-      ); // Convert to ounces before dispatching
+      );
       updateDailyIntakeGoal(newGoalInOunces);
    };
 
-   // hook for sqlite db
-   const { performSQLAction } = useSQLiteDB();
+   const handleClearHistory = async () => {
+      const confirmed = window.confirm(
+         "Are you sure you want to clear the full history? This action cannot be undone."
+      );
+      if (confirmed) {
+         try {
+            await dispatch(
+               performSQLAction({
+                  action: async (db) => {
+                     // Drop the table
+                     await db.run(`DROP TABLE IF EXISTS water_intake`);
+                     console.log("Table dropped successfully");
+
+                     // Recreate the table
+                     await db.run(`
+                        CREATE TABLE IF NOT EXISTS water_intake (
+                           id INTEGER PRIMARY KEY AUTOINCREMENT,
+                           amount INTEGER NOT NULL,
+                           drink_type TEXT NOT NULL,
+                           timestamp TEXT NOT NULL
+                        );
+                     `);
+                     console.log("Table recreated successfully");
+                  },
+               })
+            ).unwrap();
+         } catch (error) {
+            console.error("Error resetting water_intake table:", error);
+         }
+      }
+   };
 
    return (
       <div
-         className={`relative flex flex-col items-center justify-center h-screen font-sans ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}
+         className={`relative flex flex-col items-center justify-center h-screen font-sans ${
+            theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'
+         }`}
       >
          <ScrollArea className="w-full max-w-lg mx-auto p-4 h-full pt-16">
             {/* General Settings */}
@@ -106,8 +138,8 @@ export default function SettingsScreen() {
                   <div className="flex items-center">
                      <Input
                         type="number"
-                        value={displayedDailyGoal.toFixed(1)} // Display converted daily goal
-                        onChange={handleGoalChange} // Convert to ounces before dispatching
+                        value={displayedDailyGoal.toFixed(1)}
+                        onChange={handleGoalChange}
                         className="w-28 rounded-xl bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
                      />
                      <span className="ml-2">{settings.measurementUnit}</span>
@@ -164,36 +196,7 @@ export default function SettingsScreen() {
                      <FileUp className="mr-2 h-4 w-4" />
                      Load Data (CSV)
                   </Button>
-                  <Button
-                     variant="destructive"
-                     onClick={
-                        async () => {
-                           const confirmed = window.confirm("Are you sure you want to clear the full history? This action cannot be undone.");
-                           if (confirmed) {
-                              await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
-                                 try {
-                                    // Drop the table
-                                    await db?.query(`DROP TABLE IF EXISTS water_intake`);
-                                    console.log("Table dropped successfully");
-
-                                    // Recreate the table (adjust the schema as needed)
-                                    await db?.query(`
-                                       CREATE TABLE IF NOT EXISTS water_intake (
-                                          id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                          amount INTEGER NOT NULL,
-                                          drink_type TEXT NOT NULL,
-                                          timestamp TEXT NOT NULL
-                                    );
-                                    `);
-                                    console.log("Table recreated successfully");
-                                 } catch (error) {
-                                    console.error("Error resetting water_intake table:", error);
-                                 }
-                              });
-                           }
-                        }
-                     }
-                  >
+                  <Button variant="destructive" onClick={handleClearHistory}>
                      <Bomb className="mr-2 h-4 w-4" />
                      Clear Full History
                   </Button>

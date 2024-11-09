@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Provider } from 'react-redux';
+import { useState, useEffect } from 'react';
 import { useSwipeable } from 'react-swipeable';
 
-import { store } from '@/store';
+import { RootState, AppDispatch } from '@/state/store';
 import { ThemeProvider } from '@/hooks/theme-provider';
+import { useDispatch, useSelector } from 'react-redux';
+import { initializeDB } from '@/state/databaseSlice';
 
 import Log from '@/screens/Log';
 import SettingsScreen from '@/screens/Settings';
@@ -11,7 +12,15 @@ import TabNavigation from '@/components/TabNavigation';
 
 import { Toaster } from '@/components/base-ui/toaster';
 
+
 export default function App() {
+   const dispatch = useDispatch<AppDispatch>();
+   const { initialized, error } = useSelector((state: RootState) => state.database);
+
+   useEffect(() => {
+      dispatch(initializeDB());
+   }, [dispatch]);
+
    const [selectedTab, setSelectedTab] = useState('water');
 
    const tabs = [
@@ -41,40 +50,46 @@ export default function App() {
       setSelectedTab(tabs[prevIndex].value);
    };
 
+   if (!initialized) {
+      return <div>Loading...</div>;
+   }
+
+   if (error) {
+      return <div>Error: {error}</div>;
+   }
+
    return (
-      <Provider store={store}>
-         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-            <div
-               className="relative min-h-screen w-full flex flex-col items-center justify-center"
-               {...handlers}
-            >
-               <div className="relative w-full min-h-screen overflow-hidden">
-                  <div
-                     className="absolute inset-0 w-full transition-transform duration-500"
-                     style={{
-                        transform: `translateX(-${getTabIndex() * 100}%)`,
-                     }}
-                  >
-                     <div className="w-full min-h-screen absolute top-0 left-0">
-                        <Log isActive={selectedTab === 'water'} />
-                     </div>
-                     <div className="w-full min-h-screen absolute top-0 left-full">
-                        <div className="flex justify-center items-center h-full w-full min-h-screen">
-                           <h1>Metrics screen placeholder</h1>
-                        </div>
-                     </div>
-                     <div className="w-full min-h-screen absolute top-0 left-[200%]">
-                        <SettingsScreen />
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+         <div
+            className="relative min-h-screen w-full flex flex-col items-center justify-center"
+            {...handlers}
+         >
+            <div className="relative w-full min-h-screen overflow-hidden">
+               <div
+                  className="absolute inset-0 w-full transition-transform duration-500"
+                  style={{
+                     transform: `translateX(-${getTabIndex() * 100}%)`,
+                  }}
+               >
+                  <div className="w-full min-h-screen absolute top-0 left-0">
+                     <Log isActive={selectedTab === 'water'} />
+                  </div>
+                  <div className="w-full min-h-screen absolute top-0 left-full">
+                     <div className="flex justify-center items-center h-full w-full min-h-screen">
+                        <h1>Metrics screen placeholder</h1>
                      </div>
                   </div>
+                  <div className="w-full min-h-screen absolute top-0 left-[200%]">
+                     <SettingsScreen />
+                  </div>
                </div>
-               <TabNavigation
-                  selectedTab={selectedTab}
-                  onTabChange={setSelectedTab}
-               />
             </div>
-            <Toaster />
-         </ThemeProvider>
-      </Provider>
+            <TabNavigation
+               selectedTab={selectedTab}
+               onTabChange={setSelectedTab}
+            />
+         </div>
+         <Toaster />
+      </ThemeProvider>
    );
 }

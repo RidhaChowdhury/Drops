@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
 import { useTheme } from '@/hooks/theme-provider';
 
 import WaterEntryDrawer from '@/components/WaterEntryDrawer';
@@ -14,7 +12,10 @@ import { Droplet, RotateCcw, GlassWater } from 'lucide-react';
 import Wave from 'react-wavify';
 
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
-import useSQLiteDB from "../db/useSQLiteDB";
+// import useSQLiteDB from "../db/useSQLiteDB";
+import { useDispatch, useSelector } from 'react-redux';
+import { performSQLAction } from '@/state/databaseSlice';
+import { RootState, AppDispatch } from '@/state/store';
 
 export default function Log({ isActive }: { isActive: boolean }) {
    const { theme } = useTheme();
@@ -37,6 +38,9 @@ export default function Log({ isActive }: { isActive: boolean }) {
    const [newQuickAddValue, setNewQuickAddValue] = useState<number>(16);
    const [showFABs, setShowFABs] = useState(false);
 
+   const dispatch = useDispatch<AppDispatch>();
+   const { initialized } = useSelector((state: RootState) => state.database);
+
    useEffect(() => {
       if (isActive) {
          const timeout = setTimeout(() => setShowFABs(true), 100);
@@ -46,47 +50,42 @@ export default function Log({ isActive }: { isActive: boolean }) {
       }
    }, [isActive]);
 
-   type LastDrinkResult = {
-      values: Array<{
-         id: number;
-         amount: number;
-      }>;
-   };
    
    const handleUndo = async () => {
-      try {
-         let lastDrinkResult: LastDrinkResult | undefined;
-   
-         // Step 1: Retrieve the most recent entry (highest id)
-         await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
-            lastDrinkResult = await db?.query(
-               `SELECT id, amount FROM water_intake ORDER BY id DESC LIMIT 1`
-            ) as LastDrinkResult; // Type assertion here
-         });
-   
-         // Check if there is a last drink entry
-         const lastDrink = lastDrinkResult?.values?.[0];
-         if (lastDrink) {
-            const lastDrinkAmount = lastDrink.amount;
-   
-            // Step 2: Delete the last drink entry by its id
-            await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
-               await db?.run(`DELETE FROM water_intake WHERE id = ?`, [lastDrink.id]);
-            });
-   
-            // Step 3: Update the water intake state
-            setWaterIntake((prev) => Math.max(0, prev - lastDrinkAmount));
-         }
-      } catch (error) {
-         console.error("Error in handleUndo:", error);
+    try {
+      // Step 1: Retrieve the most recent entry (highest id)
+      const lastDrinkResult = await dispatch(
+        performSQLAction({
+          action: async (db) => {
+            const result = await db.query(
+              `SELECT id, amount FROM water_intake ORDER BY id DESC LIMIT 1`
+            );
+            return result;
+          },
+        })
+      ).unwrap();
+
+      // Check if there is a last drink entry
+      const lastDrink = lastDrinkResult?.values?.[0];
+      if (lastDrink) {
+        const lastDrinkAmount = lastDrink.amount;
+
+        // Step 2: Delete the last drink entry by its id
+        await dispatch(
+          performSQLAction({
+            action: async (db) => {
+              await db.run(`DELETE FROM water_intake WHERE id = ?`, [lastDrink.id]);
+            },
+          })
+        ).unwrap();
+
+        // Step 3: Update the water intake state
+        setWaterIntake((prev) => Math.max(0, prev - lastDrinkAmount));
       }
-   };
-   
-   
-
-
-   // hook for sqlite db
-   const { performSQLAction, initialized } = useSQLiteDB();
+    } catch (error) {
+      console.error("Error in handleUndo:", error);
+    }
+  };
 
    useEffect(() => {
       loadData();
@@ -95,52 +94,67 @@ export default function Log({ isActive }: { isActive: boolean }) {
    /**
     * do a select of the database
     */
-   const loadData = async () => {
-   try {
-      // Step 2: Fetch the total intake for today
-      let totalIntake = 0;
-      await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
-         const result = await db?.query(
+  const loadData = () => {
+    if (!initialized) return;
+
+    dispatch(
+      performSQLAction({
+        action: async (db: SQLiteDBConnection) => {
+          const result = await db.query(
             `SELECT SUM(amount) as totalIntake FROM water_intake WHERE DATE(timestamp) = DATE('now')`
-         );
-         totalIntake = result?.values?.[0]?.totalIntake ?? 0;
+          );
+          return result?.values?.[0]?.totalIntake ?? 0;
+        },
+      })
+    )
+      .unwrap()
+      .then((totalIntake) => {
+        console.log(totalIntake);
+      })
+      .catch((error) => {
+        alert(error.message);
       });
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [initialized]);
+
+  const handleAddWater = async (amount: number) => {
+    const amountInOz = convertToOunces(amount, measurementUnit);
+    const timestamp = new Date().toISOString();
+
+    try {
+      // Step 1: Insert the new water intake record
+      await dispatch(
+        performSQLAction({
+          action: async (db) => {
+            await db.run(
+              `INSERT INTO water_intake (amount, drink_type, timestamp) VALUES (?, ?, ?)`,
+              [amountInOz, 'WATER', timestamp]
+            );
+          },
+        })
+      ).unwrap();
+
+      // Step 2: Fetch the total intake for today
+      const totalIntake = await dispatch(
+        performSQLAction({
+          action: async (db) => {
+            const result = await db.query(
+              `SELECT SUM(amount) as totalIntake FROM water_intake WHERE DATE(timestamp) = DATE('now')`
+            );
+            return result?.values?.[0]?.totalIntake ?? 0;
+          },
+        })
+      ).unwrap();
 
       // Update state with the fetched total intake
       setWaterIntake(totalIntake);
-   } catch (error) {
-      alert((error as Error).message);
-   }
-   };
-
-   const handleAddWater = async (amount: number) => {
-      const amountInOz = convertToOunces(amount, measurementUnit);
-      const timestamp = new Date().toISOString(); // Only date part
-   
-      try {
-         // Step 1: Insert the new water intake record
-         await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
-            await db?.run(
-               `INSERT INTO water_intake (amount, drink_type, timestamp) VALUES (?, ?, ?)`,
-               [amountInOz, 'WATER', timestamp]
-            );
-         });
-   
-         // Step 2: Fetch the total intake for today
-         let totalIntake = 0;
-         await performSQLAction(async (db: SQLiteDBConnection | undefined) => {
-            const result = await db?.query(
-               `SELECT SUM(amount) as totalIntake FROM water_intake WHERE DATE(timestamp) = DATE('now')`
-            );
-            totalIntake = result?.values?.[0]?.totalIntake ?? 0;
-         });
-   
-         // Update state with the fetched total intake
-         setWaterIntake(totalIntake);
-      } catch (error) {
-         console.error("Error in handleAddWater:", error);
-      }
-   };
+    } catch (error) {
+      console.error("Error in handleAddWater:", error);
+    }
+  };
     
    const handleOpenCustomDrawer = () => {
       setNewQuickAddValue(16);
