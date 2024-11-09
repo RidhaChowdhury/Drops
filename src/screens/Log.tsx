@@ -13,6 +13,8 @@ import { getWaterHistory, saveWaterHistory } from '@/utils/storageUtils';
 import { Droplet, RotateCcw, GlassWater } from 'lucide-react';
 import Wave from 'react-wavify';
 
+import { LocalNotifications } from '@capacitor/local-notifications';
+
 export default function Log({ isActive }: { isActive: boolean }) {
    const { theme } = useTheme();
    const dailyGoal = useSelector(
@@ -21,13 +23,12 @@ export default function Log({ isActive }: { isActive: boolean }) {
    const measurementUnit = useSelector(
       (state: RootState) => state.settings.measurementUnit
    );
-   const {
-      notificationsEnabled,
-      notifcationDelay,
-   } = useSelector((state: RootState) => ({
-      notificationsEnabled: state.settings.notificationsEnabled,
-      notifcationDelay: state.settings.notificationDelay
-   }));
+   const { notificationsEnabled, notifcationDelay } = useSelector(
+      (state: RootState) => ({
+         notificationsEnabled: state.settings.notificationsEnabled,
+         notifcationDelay: state.settings.notificationDelay,
+      })
+   );
 
    const currentDate = new Date().toISOString().split('T')[0];
    const waterHistory = getWaterHistory();
@@ -61,6 +62,21 @@ export default function Log({ isActive }: { isActive: boolean }) {
       saveWaterHistory(updatedHistory);
    }, [waterIntake, drinkLog, currentDate]);
 
+   const sendInstantNotification = async () => {
+      console.log(notifcationDelay, notificationsEnabled);
+      await LocalNotifications.requestPermissions();
+      await LocalNotifications.schedule({
+         notifications: [
+            {
+               id: 1,
+               title: 'Drink more water!',
+               body: ('Its been ' + notifcationDelay + ' minutes since you drank water'),
+               schedule: { at: new Date(Date.now() + 60000 * notifcationDelay) }, // Send immediately
+            },
+         ],
+      });
+   };
+
    const handleUndo = () => {
       if (drinkLog.length > 0) {
          const lastDrink = drinkLog[drinkLog.length - 1];
@@ -78,33 +94,33 @@ export default function Log({ isActive }: { isActive: boolean }) {
       setDrinkLog((prev) => [...prev, amountInOz]);
 
       // Set a new notification reminder
-      handleSetNotification();
+      // handleSetNotification();
    };
-   
+
    // Function to set the notification after x minutes
-   const handleSetNotification = async () => {
-      // Check if notifications are enabled in the settings
-      if (!notificationsEnabled) return;
+   // const handleSetNotification = async () => {
+   //    // Check if notifications are enabled in the settings
+   //    if (!notificationsEnabled) return;
 
-      // Cancel existing notifications before scheduling a new one
-      await LocalNotifications.cancel({ notifications: [] });
-      
-      const notificationTime = new Date((new Date()).getTime() + notifcationDelay * 60000);
+   //    // Cancel existing notifications before scheduling a new one
+   //    await LocalNotifications.cancel({ notifications: [] });
 
-      // Only schedule the notification if the time is within the set bounds
-      await LocalNotifications.schedule({
-         notifications: [
-            {
-               id: 0,
-               title: 'Hydration Reminder',
-               body: 'Time to drink water!',
-               schedule: {
-                  at: notificationTime,
-               },
-            },
-         ],
-      });
-   };
+   //    const notificationTime = new Date((new Date()).getTime() + notifcationDelay * 60000);
+
+   //    // Only schedule the notification if the time is within the set bounds
+   //    await LocalNotifications.schedule({
+   //       notifications: [
+   //          {
+   //             id: 0,
+   //             title: 'Hydration Reminder',
+   //             body: 'Time to drink water!',
+   //             schedule: {
+   //                at: notificationTime,
+   //             },
+   //          },
+   //       ],
+   //    });
+   // };
 
    const handleOpenCustomDrawer = () => {
       setNewQuickAddValue(16);
@@ -131,7 +147,6 @@ export default function Log({ isActive }: { isActive: boolean }) {
    };
 
    const displayedIntake = convertFromOunces(waterIntake, measurementUnit);
-   const displayedGoal = convertFromOunces(dailyGoal, measurementUnit);
 
    return (
       <div
@@ -203,6 +218,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
             onChange={handleInputChange}
             onBlur={handleInputBlur}
             onQuickAdd={handleQuickAddWater} // New prop to handle quick add
+            notificationSender={sendInstantNotification}
          />
       </div>
    );
