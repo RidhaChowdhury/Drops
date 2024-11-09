@@ -80,7 +80,8 @@ export default function SettingsScreen() {
       <div
          className={`relative flex flex-col items-center justify-center min-h-screen font-sans ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}
       >
-         <ScrollArea className="w-full max-w-lg mx-auto p-4 h-screen pt-16">
+         <ScrollArea className="w-full max-w-lg mx-auto px-4 pt-4 h-full">
+            {/* General Settings */}
             <div className="relative z-10 flex flex-col items-center w-full space-y-8">
                <div className="text-left w-full mb-4">
                   <h1 className="text-4xl font-bold">General Settings</h1>
@@ -107,10 +108,10 @@ export default function SettingsScreen() {
                         updateMeasurementUnit(value)
                      }
                   >
-                     <SelectTrigger className="w-24 rounded-2xl border-2 border-transparent transition-colors bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white">
+                     <SelectTrigger className="w-24 rounded-xl border-2 border-transparent transition-colors bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white">
                         <SelectValue placeholder="Select unit" />
                      </SelectTrigger>
-                     <SelectContent className="rounded-lg">
+                     <SelectContent className="rounded-xl">
                         {units.map((unit) => (
                            <SelectItem key={unit} value={unit}>
                               {unit}
@@ -125,9 +126,9 @@ export default function SettingsScreen() {
                   <div className="flex items-center">
                      <Input
                         type="number"
-                        value={displayedDailyGoal.toFixed(1)}
-                        onChange={handleGoalChange}
-                        className="w-28 rounded-2xl border-2 border-transparent bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
+                        value={displayedDailyGoal.toFixed(1)} // Display converted daily goal
+                        onChange={handleGoalChange} // Convert to ounces before dispatching
+                        className="w-28 rounded-xl bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white"
                      />
                      <span className="ml-2">{settings.measurementUnit}</span>
                   </div>
