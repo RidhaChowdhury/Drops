@@ -12,27 +12,39 @@ const useSQLiteDB = () => {
 
   useEffect(() => {
     const initializeDB = async () => {
-      if (sqlite.current) return;
+      try {
+        if (sqlite.current) return;
 
-      console.log("Making db");
-      sqlite.current = new SQLiteConnection(CapacitorSQLite);
-      const ret = await sqlite.current.checkConnectionsConsistency();
-      const isConn = (await sqlite.current.isConnection("db_vite", false))
-        .result;
+        console.log("Initializing database connection");
+        sqlite.current = new SQLiteConnection(CapacitorSQLite);
+        
+        // Ensure platform is ready
+        await sqlite.current.initWebStore();
+        
+        const ret = await sqlite.current.checkConnectionsConsistency();
+        const isConn = (await sqlite.current.isConnection("db_vite", false)).result;
 
-      if (ret.result && isConn) {
-        db.current = await sqlite.current.retrieveConnection("db_vite", false);
-      } else {
-        db.current = await sqlite.current.createConnection(
-          "db_vite",
-          false,
-          "no-encryption",
-          1,
-          false
-        );
+        if (ret.result && isConn) {
+          console.log("Retrieving existing connection");
+          db.current = await sqlite.current.retrieveConnection("db_vite", false);
+        } else {
+          console.log("Creating new connection");
+          db.current = await sqlite.current.createConnection(
+            "db_vite",
+            false,
+            "no-encryption",
+            1,
+            false
+          );
+        }
+
+        // Explicitly open the database after creation
+        await db.current.open();
+        console.log("Database connection established successfully");
+      } catch (error) {
+        console.error("Database initialization error:", error);
+        throw error;
       }
-
-      console.log("Db made");
     };
 
     initializeDB().then(() => {
@@ -46,15 +58,23 @@ const useSQLiteDB = () => {
     cleanup?: () => Promise<void>
   ) => {
     try {
-      await db.current?.open();
+      // Check if database is already open
+      if (!(await db.current?.isDBOpen())?.result) {
+        await db.current?.open();
+      }
       await action(db.current);
     } catch (error) {
+      console.error("SQL action error:", error);
       alert((error as Error).message);
     } finally {
       try {
-        (await db.current?.isDBOpen())?.result && (await db.current?.close());
+        if ((await db.current?.isDBOpen())?.result) {
+          await db.current?.close();
+        }
         cleanup && (await cleanup());
-      } catch {}
+      } catch (error) {
+        console.error("Error closing database:", error);
+      }
     }
   };
 

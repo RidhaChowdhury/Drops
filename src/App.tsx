@@ -15,7 +15,7 @@ import { Toaster } from '@/components/base-ui/toaster';
 
 export default function App() {
    const dispatch = useDispatch<AppDispatch>();
-   const { initialized, error } = useSelector((state: RootState) => state.database);
+   const { initialized, isInitializing, error } = useSelector((state: RootState) => state.database);
 
    useEffect(() => {
       dispatch(initializeDB());
@@ -50,12 +50,26 @@ export default function App() {
       setSelectedTab(tabs[prevIndex].value);
    };
 
-   if (!initialized) {
-      return <div>Loading...</div>;
+   if (isInitializing) {
+      return (
+         <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+               <div>Initializing Database...</div>
+            </div>
+         </div>
+      );
    }
 
-   if (error) {
-      return <div>Error: {error}</div>;
+   if (!initialized) {
+      return (
+         <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center text-red-600 dark:text-red-400 p-4">
+               <div>Failed to initialize database</div>
+               {error && <div className="mt-2 text-sm">{error}</div>}
+            </div>
+         </div>
+      );
    }
 
    return (

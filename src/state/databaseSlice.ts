@@ -7,35 +7,39 @@ let db: SQLiteDBConnection | null = null;
 
 interface DatabaseState {
   initialized: boolean;
+  isInitializing: boolean;
   error: string | null;
 }
 
 const initialState: DatabaseState = {
   initialized: false,
+  isInitializing: false,
   error: null,
 };
 
-// Async thunk to initialize the database and create tables
 export const initializeDB = createAsyncThunk<boolean, void, { rejectValue: string }>(
   'database/initializeDB',
   async (_, { rejectWithValue }) => {
     try {
-        sqlite.checkConnectionsConsistency();
-      const isConn = (await sqlite.isConnection('db_vite', false)).result;
+      // Create a new connection
+      db = await sqlite.createConnection(
+        'db_vite',
+        false,
+        'no-encryption',
+        1,
+        false
+      );
 
-      db = isConn
-        ? await sqlite.retrieveConnection('db_vite', false)
-        : await sqlite.createConnection('db_vite', false, 'no-encryption', 1, false);
-
+      // Open the database
       await db.open();
 
-      // Create necessary tables
-    await initializeWaterIntakeTable(db);
-    await initializeQuickAddTable(db);
+      // Create tables
+      await initializeWaterIntakeTable(db);
+      await initializeQuickAddTable(db);
 
       return true;
     } catch (error: unknown) {
-      return rejectWithValue((error as Error).message);
+      return rejectWithValue(`Database error: ${(error as Error).message}`);
     }
   }
 );
@@ -78,7 +82,6 @@ export const initializeQuickAddTable = async (db: SQLiteDBConnection) => {
     }
   };
 
-
 // Async thunk to perform SQL actions
 export const performSQLAction = createAsyncThunk<
   any,
@@ -86,14 +89,13 @@ export const performSQLAction = createAsyncThunk<
   { rejectValue: string }
 >('database/performSQLAction', async ({ action }, { rejectWithValue }) => {
   try {
-    
-    if (!db) throw new Error("Database not initialized");
-    await db.open();
-    const result = await action(db);
-    await db.close();
-    return result;
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+
+    return await action(db);
   } catch (error: unknown) {
-    return rejectWithValue((error as Error).message);
+    return rejectWithValue(`SQL error: ${(error as Error).message}`);
   }
 });
 
@@ -103,15 +105,19 @@ const databaseSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(initializeDB.pending, (state) => {
+        state.isInitializing = true;
+        state.error = null;
+      })
       .addCase(initializeDB.fulfilled, (state) => {
         state.initialized = true;
+        state.isInitializing = false;
         state.error = null;
       })
       .addCase(initializeDB.rejected, (state, action: PayloadAction<string | undefined>) => {
-        state.error = action.payload || null;
-      })
-      .addCase(performSQLAction.rejected, (state, action: PayloadAction<string | undefined>) => {
-        state.error = action.payload || null;
+        state.initialized = false;
+        state.isInitializing = false;
+        state.error = action.payload || 'Unknown database error';
       });
   },
 });
