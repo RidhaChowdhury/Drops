@@ -30,7 +30,8 @@ export const initializeDB = createAsyncThunk<boolean, void, { rejectValue: strin
       await db.open();
 
       // Create necessary tables
-      await initializeTables(db);
+    await initializeWaterIntakeTable(db);
+    await initializeQuickAddTable(db);
 
       return true;
     } catch (error: unknown) {
@@ -40,7 +41,7 @@ export const initializeDB = createAsyncThunk<boolean, void, { rejectValue: strin
 );
 
 // Async thunk to create tables if they do not exist
-export const initializeTables = async (db: SQLiteDBConnection) => {
+export const initializeWaterIntakeTable = async (db: SQLiteDBConnection) => {
   const createWaterIntakeTableQuery = `
     CREATE TABLE IF NOT EXISTS water_intake (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,6 +60,25 @@ export const initializeTables = async (db: SQLiteDBConnection) => {
   }
 };
 
+// Async thunk to create tables if they do not exist
+export const initializeQuickAddTable = async (db: SQLiteDBConnection) => {
+    const createQuickAddTableQuery = `
+        CREATE TABLE IF NOT EXISTS quick_add (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            quick_add_amount INTEGER NOT NULL
+        );
+        `;
+  
+    try {
+      await db.execute(createQuickAddTableQuery);
+      console.log("Quick add table created or already exists.");
+    } catch (error) {
+      console.error("Error creating quick add table:", error);
+      throw error;
+    }
+  };
+
+
 // Async thunk to perform SQL actions
 export const performSQLAction = createAsyncThunk<
   any,
@@ -66,6 +86,7 @@ export const performSQLAction = createAsyncThunk<
   { rejectValue: string }
 >('database/performSQLAction', async ({ action }, { rejectWithValue }) => {
   try {
+    
     if (!db) throw new Error("Database not initialized");
     await db.open();
     const result = await action(db);

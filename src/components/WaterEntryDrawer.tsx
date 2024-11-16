@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { Button } from '@/components/base-ui/button';
 import { ScrollArea, ScrollBar } from '@/components/base-ui/scroll-area';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '@/state/store';
+import { performSQLAction } from '@/state/databaseSlice';
 import {
    Drawer,
    DrawerContent,
@@ -50,12 +53,40 @@ export default function WaterEntryDrawer({
    const { theme } = useTheme();
    const [mode, setMode] = useState<'open' | 'add' | 'edit' | 'new'>();
    const [editingIndex, setEditingIndex] = useState<number | null>(null); // Track which quick add is being edited
-   const [quickAdds, setQuickAdds] = useState<number[]>(() =>
-      JSON.parse(localStorage.getItem('quickAddValues') || '[8, 16]')
-   );
+   const [quickAdds, setQuickAdds] = useState<Array<{id: number, amount: number}>>([]);
    const [longPressTimeout, setLongPressTimeout] =
       useState<NodeJS.Timeout | null>(null);
    const { toast } = useToast();
+   const dispatch = useDispatch<AppDispatch>();
+   const { initialized } = useSelector((state: RootState) => state.database);
+
+   // Load quick add values from database when component mounts
+   useEffect(() => {
+      if (!initialized) return;
+      loadQuickAdds();
+   }, [initialized]);
+
+   const loadQuickAdds = async () => {
+      try {
+         const result = await dispatch(
+            performSQLAction({
+               action: async (db) => {
+                  const result = await db.query(
+                     `SELECT id, quick_add_amount FROM quick_add ORDER BY quick_add_amount ASC`
+                  );
+                  return result?.values?.map(row => ({
+                     id: row.id,
+                     amount: row.quick_add_amount
+                  })) ?? [{id: -1, amount: 8}, {id: -2, amount: 16}];
+               },
+            })
+         ).unwrap();
+         setQuickAdds(result);
+      } catch (error) {
+         console.error("Error loading quick adds:", error);
+         setQuickAdds([{id: -1, amount: 8}, {id: -2, amount: 16}]); // Fallback values
+      }
+   };
 
    // Reset the edit mode when the drawer is closed
    useEffect(() => {
@@ -65,12 +96,6 @@ export default function WaterEntryDrawer({
       }
    }, [isOpen]);
 
-   // Save quick add values to localStorage
-   const saveQuickAdds = (newValues: number[]) => {
-      setQuickAdds(newValues);
-      localStorage.setItem('quickAddValues', JSON.stringify(newValues));
-   };
-
    const handleQuickAddClick = (amount: number) => {
       if (mode === 'add' || mode === 'open') {
          onQuickAdd(amount);
@@ -78,60 +103,145 @@ export default function WaterEntryDrawer({
       }
    };
 
-   const handleQuickAddHold = (index: number) => {
-      setEditingIndex(index); // Set the index of the quick add being edited
+   const handleQuickAddHold = (id: number) => {
+      const quickAdd = quickAdds.find(qa => qa.id === id);
+      if (!quickAdd) return;
+      
+      const index = quickAdds.findIndex(qa => qa.id === id);
+      setEditingIndex(index);
+      onChange({ target: { value: quickAdd.amount.toString() } } as React.ChangeEvent<HTMLInputElement>);
       setMode('edit');
    };
 
-   const handleMouseDown = (index: number) => {
-      const timeout = setTimeout(() => handleQuickAddHold(index), 500); // Enter edit mode after a long press
+   const handleMouseDown = (id: number) => {
+      const timeout = setTimeout(() => handleQuickAddHold(id), 1000); // Enter edit mode after a long press
       setLongPressTimeout(timeout);
    };
 
    const handleMouseUp = () => {
       if (longPressTimeout) {
          clearTimeout(longPressTimeout);
+         setLongPressTimeout(null);
       }
    };
 
-   const handleSaveQuickAdd = () => {
+   const handleTouchStart = (id: number) => {
+      const timeout = setTimeout(() => handleQuickAddHold(id), 1000);
+      setLongPressTimeout(timeout);
+   };
+
+   const handleTouchEnd = () => {
+      if (longPressTimeout) {
+         clearTimeout(longPressTimeout);
+         setLongPressTimeout(null);
+      }
+   };
+
+   const handleSaveQuickAdd = async () => {
       if (editingIndex !== null) {
-         if (checkForDuplicate()) return;
-         const updatedQuickAdds = [...quickAdds];
-         updatedQuickAdds[editingIndex] = value; // Save the new value
-         saveQuickAdds(updatedQuickAdds);
-         setEditingIndex(null); // Reset editing state
-         setMode('open');
+         if (await checkForDuplicate(value)) return;
+         try {
+            const quickAdd = quickAdds[editingIndex];
+            if (!quickAdd) return;
+            
+            await dispatch(
+               performSQLAction({
+                  action: async (db) => {
+                     await db.run(
+                        `UPDATE quick_add SET quick_add_amount = ? WHERE id = ?`,
+                        [value, quickAdd.id]
+                     );
+                  },
+               })
+            ).unwrap();
+            await loadQuickAdds(); // Reload the values from DB
+            setEditingIndex(null);
+            setMode('open');
+         } catch (error) {
+            console.error("Error updating quick add:", error);
+         }
       }
    };
 
-   const handleDeleteQuickAdd = () => {
+   const handleDeleteQuickAdd = async () => {
       if (editingIndex !== null) {
-         const updatedQuickAdds = quickAdds.filter(
-            (_, idx) => idx !== editingIndex
-         );
-         saveQuickAdds(updatedQuickAdds);
-         setEditingIndex(null); // Reset editing state
-         setMode('open');
+         try {
+            const quickAdd = quickAdds[editingIndex];
+            if (!quickAdd) return;
+
+            await dispatch(
+               performSQLAction({
+                  action: async (db) => {
+                     await db.run(
+                        `DELETE FROM quick_add WHERE id = ?`,
+                        [quickAdd.id]
+                     );
+                  },
+               })
+            ).unwrap();
+            await loadQuickAdds(); // Reload the values from DB
+            setEditingIndex(null);
+            setMode('open');
+         } catch (error) {
+            console.error("Error deleting quick add:", error);
+         }
       }
    };
 
-   const handleNewQuickAdd = () => {
-      if (checkForDuplicate()) return;
-      setQuickAdds([...quickAdds, value]);
-      setMode('open');
-   };
+   const handleNewQuickAdd = async () => {
+      
+      const isDuplicate = await checkForDuplicate(value);
+      if (isDuplicate) return;
+      // Proceed with adding the new quick add to the database
+      try {
+        await dispatch(
+          performSQLAction({
+            action: async (db) => {
+              await db.run(
+                `INSERT INTO quick_add (quick_add_amount) VALUES (?)`,
+                [value]
+              );
+            },
+          })
+        ).unwrap();
+    
+        setQuickAdds([...quickAdds, {id: -1, amount: value}]);
+        setMode('open');
+      } catch (error) {
+        console.error("Error adding new quick add:", error);
+      }
+    };
 
-   const checkForDuplicate = () => {
-      if (quickAdds.includes(value)) {
-         toast({
-            title: 'Duplicate Quick Add',
-            description: 'You already have a quick add for ' + value + ' oz',
-            duration: 5000,
-         });
-         return true;
+   const checkForDuplicate = async (amount: number) => {
+      try {
+         const queryResult = await dispatch(
+            performSQLAction({
+               action: async (db) => {
+                  const result = await db.query(
+                     `SELECT COUNT(*) as count FROM quick_add WHERE quick_add_amount = ?`,
+                     [amount]
+                  );
+                  return result?.values?.[0]?.count ?? 0;
+               },
+            })
+         ).unwrap();
+
+         if (queryResult > 0) {
+            toast({
+               title: 'Duplicate Quick Add',
+               description: `You already have a quick add for ${amount} oz`,
+               duration: 5000,
+            });
+            return true;
+         }
+         return false;
+      } catch (error) {
+         console.error("Error checking for duplicate quick add:", error);
+         return true; // Assume duplicate in case of error to prevent adding.
       }
    };
+    
+    
 
    const drinkTypes = [
       { value: 'juice', label: 'Juice', hydrationFactor: 0.80 },
@@ -210,16 +320,21 @@ export default function WaterEntryDrawer({
                         {/* Scroll Area */}
                         <ScrollArea className="w-full">
                            <div className="flex pb-2 pr-4 space-x-4">
-                              {quickAdds.map((amount, index) => (
+                              {quickAdds
+                                 .sort((a, b) => a.amount - b.amount)
+                                 .map((quickAdd) => (
                                  <Button
-                                 key={index}
-                                 onClick={() => handleQuickAddClick(amount)}
-                                    onMouseDown={() => handleMouseDown(index)}
+                                    key={quickAdd.id}
+                                    onClick={() => handleQuickAddClick(quickAdd.amount)}
+                                    onMouseDown={() => handleMouseDown(quickAdd.id)}
                                     onMouseUp={handleMouseUp}
+                                    onMouseLeave={handleMouseUp}
+                                    onTouchStart={() => handleTouchStart(quickAdd.id)}
+                                    onTouchEnd={handleTouchEnd}
                                     className="px-4 py-6 rounded-xl text-2xl shrink-0"
                                     variant="outline"
-                                    >
-                                    {amount} oz
+                                 >
+                                    {quickAdd.amount} oz
                                  </Button>
                               ))}
                            </div>
