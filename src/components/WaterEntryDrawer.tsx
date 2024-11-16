@@ -186,7 +186,7 @@ export default function WaterEntryDrawer({
                            value={value}
                            onChange={onChange}
                            onBlur={onBlur}
-                           className="text-8xl font-bold tracking-tighter bg-transparent border-none text-center w-40"
+                           className="text-8xl font-bold tracking-tighter bg-transparent outline-none text-center w-40"
                            inputMode="numeric"
                         />
                         <div className="text-xl uppercase mt-2">Ounces</div>
@@ -223,7 +223,7 @@ export default function WaterEntryDrawer({
                                  </Button>
                               ))}
                            </div>
-                           <ScrollBar orientation="horizontal" />
+                           <ScrollBar orientation="horizontal" className='hidden'/>
                         </ScrollArea>
 
                         {/* Fade overlay */}
