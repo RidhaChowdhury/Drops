@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Drops</string>
-    <string name="title_activity_main">Drops</string>
-    <string name="package_name">com.ridhachowdhury.Drops</string>
-    <string name="custom_url_scheme">com.ridhachowdhury.Drops</string>
+    <string name="app_name">hydrated</string>
+    <string name="title_activity_main">hydrated</string>
+    <string name="package_name">com.ridhachowdhury.hydrated</string>
+    <string name="custom_url_scheme">com.ridhachowdhury.hydrated</string>
 </resources>

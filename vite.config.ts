@@ -11,8 +11,8 @@ export default defineConfig({
          registerType: 'autoUpdate', // Auto-updates the service worker
          includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'], // Optional assets to include
          manifest: {
-            name: 'Drops',
-            short_name: 'Drops',
+            name: 'hydrated',
+            short_name: 'hydrated',
             description: 'A simple app to log your water intake.',
             theme_color: '#ffffff',
             background_color: '#ffffff',

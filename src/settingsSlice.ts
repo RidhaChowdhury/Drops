@@ -1,15 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface SettingsState {
+export interface SettingsState {
    dailyIntakeGoal: number;
-   measurementUnit: 'oz' | 'mL' | 'L' | 'cups'; // Added all unit types
-   notificationsEnabled: boolean; // New notification state
+   measurementUnit: 'oz' | 'mL' | 'L' | 'cups';
+   notificationsEnabled: boolean;
 }
 
 const initialState: SettingsState = {
    dailyIntakeGoal: 150,
    measurementUnit: 'oz',
-   notificationsEnabled: false, // Notifications default to disabled
+   notificationsEnabled: false,
 };
 
 const settingsSlice = createSlice({
@@ -26,7 +26,7 @@ const settingsSlice = createSlice({
          state.measurementUnit = action.payload;
       },
       setNotificationsEnabled: (state, action: PayloadAction<boolean>) => {
-         state.notificationsEnabled = action.payload; // New reducer for notifications
+         state.notificationsEnabled = action.payload;
       },
       clearHistory: () => {
          // Placeholder for clearing history logic
@@ -43,7 +43,7 @@ const settingsSlice = createSlice({
 export const {
    setDailyIntakeGoal,
    setMeasurementUnit,
-   setNotificationsEnabled, // New notification action
+   setNotificationsEnabled,
    clearHistory,
    backupData,
    loadFromCSV,
