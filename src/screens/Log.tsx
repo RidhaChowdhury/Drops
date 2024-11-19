@@ -58,7 +58,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
         performSQLAction({
           action: async (db) => {
             const result = await db.query(
-              `SELECT id, amount FROM water_intake ORDER BY id DESC LIMIT 1`
+              `SELECT id, amount, hydration_amount FROM water_intake ORDER BY id DESC LIMIT 1`
             );
             return result;
           },
@@ -67,8 +67,9 @@ export default function Log({ isActive }: { isActive: boolean }) {
 
       // Check if there is a last drink entry
       const lastDrink = lastDrinkResult?.values?.[0];
+      
       if (lastDrink) {
-        const lastDrinkAmount = lastDrink.amount;
+        const lastDrinkAmount = lastDrink.hydration_amount;
 
         // Step 2: Delete the last drink entry by its id
         await dispatch(
@@ -117,7 +118,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
           action: async (db) => {
             const today = new Date().toISOString().split('T')[0];
             const query = `
-              SELECT SUM(amount) as total_intake 
+              SELECT SUM(hydration_amount) as total_intake 
               FROM water_intake 
               WHERE date(timestamp) = date(?);
             `;
@@ -138,29 +139,48 @@ export default function Log({ isActive }: { isActive: boolean }) {
     loadData();
   }, [initialized]);
 
-  const handleAddWater = async (amount: number) => {
+  const handleAddWater = async (amount: number, drinkType: string) => {
     const amountInOz = convertToOunces(amount, measurementUnit);
     const timestamp = new Date().toISOString();
 
     try {
-      // Step 1: Insert the new water intake record
+      // Step 1: Get the hydration factor for the drink type
+      const hydrationFactor = await dispatch(
+        performSQLAction({
+          action: async (db) => {
+            const result = await db.query(
+              `SELECT hydration_factor FROM drink_type WHERE name = ?`,
+              [drinkType]
+            );
+            return result?.values?.[0]?.hydration_factor ?? 1.0;
+          },
+        })
+      ).unwrap();
+
+      // Calculate the hydration amount
+      const hydrationAmount = amountInOz * hydrationFactor;
+
+      // Step 2: Insert the new water intake record with hydration amount
       await dispatch(
         performSQLAction({
           action: async (db) => {
             await db.run(
-              `INSERT INTO water_intake (amount, drink_type, timestamp) VALUES (?, ?, ?)`,
-              [amountInOz, 'WATER', timestamp]
+              `INSERT INTO water_intake (amount, hydration_amount, drink_type, timestamp) 
+               VALUES (?, ?, ?, ?)`,
+              [amountInOz, hydrationAmount, drinkType, timestamp]
             );
           },
         })
       ).unwrap();
 
-      // Step 2: Fetch the total intake for today
+      // Step 3: Fetch the total hydration intake for today
       const totalIntake = await dispatch(
         performSQLAction({
           action: async (db) => {
             const result = await db.query(
-              `SELECT SUM(amount) as totalIntake FROM water_intake WHERE DATE(timestamp) = DATE('now')`
+              `SELECT SUM(hydration_amount) as totalIntake 
+               FROM water_intake 
+               WHERE DATE(timestamp) = DATE('now')`
             );
             return result?.values?.[0]?.totalIntake ?? 0;
           },
@@ -170,7 +190,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
       // Update state with the fetched total intake
       setWaterIntake(totalIntake);
     } catch (error) {
-      console.error("Error in handleAddWater:", error);
+      console.error("Error adding water intake:", error);
     }
   };
     
@@ -179,8 +199,8 @@ export default function Log({ isActive }: { isActive: boolean }) {
       setIsCustomDrawerOpen(true);
    };
 
-   const handleSaveCustomAmount = () => {
-      handleAddWater(newQuickAddValue);
+   const handleSaveCustomAmount = (drinkType: string) => {
+      handleAddWater(newQuickAddValue, drinkType);
       setIsCustomDrawerOpen(false);
    };
 
@@ -191,11 +211,6 @@ export default function Log({ isActive }: { isActive: boolean }) {
 
    const handleInputBlur = () => {
       setNewQuickAddValue(Math.max(1, newQuickAddValue));
-   };
-
-   const handleQuickAddWater = (amount: number) => {
-      // Directly add the selected quick add value
-      handleAddWater(amount);
    };
 
    const displayedIntake = convertFromOunces(waterIntake, measurementUnit);
@@ -309,7 +324,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
             }
             onChange={handleInputChange}
             onBlur={handleInputBlur}
-            onQuickAdd={handleQuickAddWater} // New prop to handle quick add
+            onQuickAdd={handleAddWater} // New prop to handle quick add
          />
       </div>
    );

@@ -31,12 +31,12 @@ type WaterEntryDrawerProps = {
    title: string;
    value: number;
    onClose: () => void;
-   onSaveCustom: () => void;
+   onSaveCustom: (drinkType: string) => void;
    onIncrease: () => void;
    onDecrease: () => void;
    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
    onBlur: () => void;
-   onQuickAdd: (amount: number) => void; // Action when quick add button is clicked
+   onQuickAdd: (amount: number, drinkType: string) => void; // Action when quick add button is clicked
 };
 
 export default function WaterEntryDrawer({
@@ -54,6 +54,8 @@ export default function WaterEntryDrawer({
    const [mode, setMode] = useState<'open' | 'add' | 'edit' | 'new'>();
    const [editingIndex, setEditingIndex] = useState<number | null>(null); // Track which quick add is being edited
    const [quickAdds, setQuickAdds] = useState<Array<{id: number, amount: number}>>([]);
+   const [drinkTypes, setDrinkTypes] = useState<Array<{name: string, hydration_factor: number}>>([]);
+   const [drinkType, setDrinkType] = useState('Water');
    const [longPressTimeout, setLongPressTimeout] =
       useState<NodeJS.Timeout | null>(null);
    const { toast } = useToast();
@@ -64,6 +66,7 @@ export default function WaterEntryDrawer({
    useEffect(() => {
       if (!initialized) return;
       loadQuickAdds();
+      loadDrinkTypes();
    }, [initialized]);
 
    const loadQuickAdds = async () => {
@@ -88,6 +91,24 @@ export default function WaterEntryDrawer({
       }
    };
 
+   const loadDrinkTypes = async () => {
+      try {
+         const result = await dispatch(
+            performSQLAction({
+               action: async (db) => {
+                  const result = await db.query(
+                     `SELECT name, hydration_factor FROM drink_type ORDER BY name ASC`
+                  );
+                  return result?.values ?? [];
+               },
+            })
+         ).unwrap();
+         setDrinkTypes(result);
+      } catch (error) {
+         console.error("Error loading drink types:", error);
+      }
+   };
+
    // Reset the edit mode when the drawer is closed
    useEffect(() => {
       if (!isOpen) {
@@ -98,7 +119,7 @@ export default function WaterEntryDrawer({
 
    const handleQuickAddClick = (amount: number) => {
       if (mode === 'add' || mode === 'open') {
-         onQuickAdd(amount);
+         onQuickAdd(amount, drinkType);
          onClose();
       }
    };
@@ -240,23 +261,11 @@ export default function WaterEntryDrawer({
          return true; // Assume duplicate in case of error to prevent adding.
       }
    };
-    
-    
 
-   const drinkTypes = [
-      { value: 'juice', label: 'Juice', hydrationFactor: 0.80 },
-      { value: 'milk', label: 'Milk', hydrationFactor: 0.9 },
-      { value: 'soda', label: 'Soda', hydrationFactor: 0.5 },
-      { value: 'alcohol', label: 'Alcohol', hydrationFactor: 0.3 },
-      {value: 'water', label: 'Water', hydrationFactor: 1}
-   ];
-
-   const getHydrationFactor = (drinkValue: string): number | null => {
-      const drink = drinkTypes.find((type) => type.value === drinkValue);
-      return drink ? drink.hydrationFactor : null;
+   const getHydrationFactor = (drinkName: string): number => {
+      const drink = drinkTypes.find((type) => type.name === drinkName);
+      return drink?.hydration_factor ?? 1.0; // Default to 1.0 if not found
    };
-
-   const [drinkType, setDrinkType] = useState('water'); // State for drink type selection
 
    return (
       <Drawer open={isOpen} onClose={onClose} snapPoints={[1]}>
@@ -363,7 +372,7 @@ export default function WaterEntryDrawer({
                         <Select
                            value={drinkType}
                            onValueChange={(value) => setDrinkType(value)}
-                           >
+                        >
                            <SelectTrigger className="w-full justify-between px-4 py-4 rounded-xl text-xl">
                               <SelectValue />
                            </SelectTrigger>
@@ -371,18 +380,18 @@ export default function WaterEntryDrawer({
                               <SelectGroup>
                                  {drinkTypes.map((type) => (
                                     <SelectItem
-                                       key={type.value}
-                                       value={type.value}
+                                       key={type.name}
+                                       value={type.name}
                                        className="text-xl"
-                                       >
-                                       {type.label}
+                                    >
+                                       {type.name}
                                     </SelectItem>
                                  ))}
                               </SelectGroup>
                            </SelectContent>
                         </Select>
                         <p className="ml-4 text-2xl bold">
-                           {(getHydrationFactor(drinkType) ?? 0) * 100}%
+                           {(getHydrationFactor(drinkType) * 100).toFixed(0)}%
                         </p>
                      </div>
                   </>
@@ -396,11 +405,11 @@ export default function WaterEntryDrawer({
                      <Button
                         onClick={() => {
                            if (mode === 'open') setMode('add');
-                           else onSaveCustom();
+                           else onSaveCustom(drinkType);
                         }}
                         className={`px-6 rounded-xl text-xl w-full`}
                      >
-                        <span>Add Custom Amount</span>
+                        {mode === 'open' ? 'Add Custom Amount' : 'Add'}
                      </Button>
                   )}
 
