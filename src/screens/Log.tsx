@@ -87,6 +87,27 @@ export default function Log({ isActive }: { isActive: boolean }) {
     }
   };
 
+   const handleClearAll = async () => {
+    try {
+      await dispatch(
+        performSQLAction({
+          action: async (db) => {
+            const today = new Date().toISOString().split('T')[0];
+            await db.run(
+              `DELETE FROM water_intake WHERE date(timestamp) = date(?)`,
+              [today]
+            );
+          },
+        })
+      ).unwrap();
+
+      // Reset water intake to 0
+      setWaterIntake(0);
+    } catch (error) {
+      console.error("Error clearing water intake:", error);
+    }
+  };
+
    const loadData = async () => {
     if (!initialized) return;
 
@@ -263,6 +284,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
          <FABRow isActive={isActive} showFABs={showFABs}>
             <FAB
                onClick={handleUndo}
+               onLongPress={handleClearAll}
                icon={RotateCcw}
                bgClass="bg-gray-700"
                variant="secondary"
