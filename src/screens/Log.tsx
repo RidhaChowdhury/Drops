@@ -11,7 +11,7 @@ import { getWaterHistory } from '@/utils/storageUtils';
 import { Droplet, RotateCcw, GlassWater } from 'lucide-react';
 import Wave from 'react-wavify';
 
-import { SQLiteDBConnection } from "@capacitor-community/sqlite";
+// import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 // import useSQLiteDB from "../db/useSQLiteDB";
 import { useDispatch, useSelector } from 'react-redux';
 import { performSQLAction } from '@/state/databaseSlice';
@@ -87,33 +87,30 @@ export default function Log({ isActive }: { isActive: boolean }) {
     }
   };
 
-   useEffect(() => {
-      loadData();
-    }, [initialized]);
-  
-   /**
-    * do a select of the database
-    */
-  const loadData = () => {
+   const loadData = async () => {
     if (!initialized) return;
 
-    dispatch(
-      performSQLAction({
-        action: async (db: SQLiteDBConnection) => {
-          const result = await db.query(
-            `SELECT SUM(amount) as totalIntake FROM water_intake WHERE DATE(timestamp) = DATE('now')`
-          );
-          return result?.values?.[0]?.totalIntake ?? 0;
-        },
-      })
-    )
-      .unwrap()
-      .then((totalIntake) => {
-        console.log(totalIntake);
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
+    try {
+      const result = await dispatch(
+        performSQLAction({
+          action: async (db) => {
+            const today = new Date().toISOString().split('T')[0];
+            const query = `
+              SELECT SUM(amount) as total_intake 
+              FROM water_intake 
+              WHERE date(timestamp) = date(?);
+            `;
+            return await db.query(query, [today]);
+          },
+        })
+      ).unwrap();
+
+      if (result?.values?.[0]?.total_intake) {
+        setWaterIntake(result.values[0].total_intake);
+      }
+    } catch (error) {
+      console.error("Error loading water intake:", error);
+    }
   };
 
   useEffect(() => {
