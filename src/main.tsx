@@ -1,18 +1,16 @@
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './state/store';
 import App from './App.tsx';
 import './index.css';
-
-import React from "react";
-import { createRoot } from "react-dom/client";
-
 import { Capacitor } from "@capacitor/core";
 import {
   CapacitorSQLite,
   SQLiteConnection,
 } from "@capacitor-community/sqlite";
 import { JeepSqlite } from "jeep-sqlite/dist/components/jeep-sqlite";
-
-import { Provider } from 'react-redux';
-import { store } from './state/store.ts';
 
 window.addEventListener("DOMContentLoaded", async () => {
    try {
@@ -37,12 +35,14 @@ window.addEventListener("DOMContentLoaded", async () => {
      const container = document.getElementById("root");
      const root = createRoot(container!);
      root.render(
-       <React.StrictMode>
+      <StrictMode>
         <Provider store={store}>
-          <App />
+          <PersistGate loading={null} persistor={persistor}>
+            <App />
+          </PersistGate>
         </Provider>
-       </React.StrictMode>
-     );
+      </StrictMode>
+    );
    } catch (e) {
      console.log(e);
    }

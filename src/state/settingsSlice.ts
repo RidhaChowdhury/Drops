@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface SettingsState {
+export interface SettingsState {
    dailyIntakeGoal: number;
    measurementUnit: 'oz' | 'mL' | 'L' | 'cups';
    notificationsEnabled: boolean;
