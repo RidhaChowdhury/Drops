@@ -116,6 +116,7 @@ export default function WaterEntryDrawer({
       if (!isOpen) {
          setMode('open'); // Reset edit mode when drawer closes
          setEditingIndex(null); // Reset the index of the quick add being edited
+         setDrinkType('Water');
       }
    }, [isOpen]);
 
