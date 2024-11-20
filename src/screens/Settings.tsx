@@ -89,7 +89,7 @@ export default function SettingsScreen() {
             theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'
          }`}
       >
-         <ScrollArea className="w-full max-w-lg mx-auto p-4 h-full pt-16">
+         <ScrollArea className="w-full max-w-lg mx-auto px-4 pt-4 h-full">
             {/* General Settings */}
             <div className="relative z-10 flex flex-col items-center w-full space-y-8">
                <div className="text-left w-full mb-4">

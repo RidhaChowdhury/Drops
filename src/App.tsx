@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Provider } from 'react-redux';
 import { useSwipeable } from 'react-swipeable';
 
-import { RootState, AppDispatch } from '@/state/store';
+import { RootState, AppDispatch, store } from '@/state/store';
 import { ThemeProvider } from '@/hooks/theme-provider';
 import { useDispatch, useSelector } from 'react-redux';
 import { initializeDB } from '@/state/databaseSlice';
@@ -11,7 +12,7 @@ import SettingsScreen from '@/screens/Settings';
 import TabNavigation from '@/components/TabNavigation';
 
 import { Toaster } from '@/components/base-ui/toaster';
-
+import MetricsScreen from './screens/Metrics';
 
 export default function App() {
    const dispatch = useDispatch<AppDispatch>();
@@ -73,37 +74,37 @@ export default function App() {
    }
 
    return (
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-         <div
-            className="relative min-h-screen w-full flex flex-col items-center justify-center"
-            {...handlers}
-         >
-            <div className="relative w-full min-h-screen overflow-hidden">
-               <div
-                  className="absolute inset-0 w-full transition-transform duration-500"
-                  style={{
-                     transform: `translateX(-${getTabIndex() * 100}%)`,
-                  }}
-               >
-                  <div className="w-full min-h-screen absolute top-0 left-0">
-                     <Log isActive={selectedTab === 'water'} />
-                  </div>
-                  <div className="w-full min-h-screen absolute top-0 left-full">
-                     <div className="flex justify-center items-center h-full w-full min-h-screen">
-                        <h1>Metrics screen placeholder</h1>
+      <Provider store={store}>
+         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            <div
+               className="relative min-h-screen w-full flex flex-col items-center justify-center"
+               {...handlers}
+            >
+               <div className="relative w-full min-h-screen overflow-hidden">
+                  <div
+                     className="absolute inset-0 w-full transition-transform duration-500"
+                     style={{
+                        transform: `translateX(-${getTabIndex() * 100}%)`,
+                     }}
+                  >
+                     <div className="w-full min-h-screen absolute top-0 left-0">
+                        <Log isActive={selectedTab === 'water'} />
+                     </div>
+                     <div className="w-full min-h-screen absolute top-0 left-full">
+                        <MetricsScreen />
+                     </div>
+                     <div className="w-full min-h-screen absolute top-0 left-[200%]">
+                        <SettingsScreen />
                      </div>
                   </div>
-                  <div className="w-full min-h-screen absolute top-0 left-[200%]">
-                     <SettingsScreen />
-                  </div>
                </div>
+               <TabNavigation
+                  selectedTab={selectedTab}
+                  onTabChange={setSelectedTab}
+               />
             </div>
-            <TabNavigation
-               selectedTab={selectedTab}
-               onTabChange={setSelectedTab}
-            />
-         </div>
-         <Toaster />
-      </ThemeProvider>
+            <Toaster />
+         </ThemeProvider>
+      </Provider>
    );
 }
