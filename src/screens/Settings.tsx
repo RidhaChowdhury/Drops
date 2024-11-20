@@ -39,7 +39,6 @@ export default function SettingsScreen() {
       updateMeasurementUnit,
       toggleNotifications,
       updateNotificationDelay,
-      clearAllHistory,
       backupSettingsData,
       loadSettingsFromCSV,
    } = useSettings();

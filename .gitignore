@@ -23,4 +23,24 @@ dist-ssr
 *.sln
 *.sw?
 
-/android
+# Android specific
+android/**/build/
+android/captures/
+android/externalNativeBuild/
+android/local.properties
+android/.gradle/
+android/app/release/
+android/capacitor.settings.gradle
+android/app/capacitor.build.gradle
+android/app/src/main/assets/public/
+android/app/src/main/res/drawable*/splash*
+android/app/src/main/res/mipmap-*/
+!android/app/src/main/res/mipmap-*/keep.xml
+
+# Keep important Android files
+!android/app/build.gradle
+!android/build.gradle
+!android/gradle*
+!android/app/src/main/java/
+!android/app/src/main/res/values/
+!android/app/src/main/AndroidManifest.xml
