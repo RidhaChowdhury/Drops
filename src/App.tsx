@@ -14,9 +14,11 @@ import TabNavigation from '@/components/TabNavigation';
 import { Toaster } from '@/components/base-ui/toaster';
 import MetricsScreen from './screens/Metrics';
 
+import splashImage from '../assets/splash.png'
+
 export default function App() {
    const dispatch = useDispatch<AppDispatch>();
-   const { initialized, isInitializing, error } = useSelector((state: RootState) => state.database);
+   const { isInitializing } = useSelector((state: RootState) => state.database);
 
    useEffect(() => {
       dispatch(initializeDB());
@@ -53,26 +55,29 @@ export default function App() {
 
    if (isInitializing) {
       return (
-         <div className="flex items-center justify-center min-h-screen">
-            <img 
-               src="/src/assets/splash.png" 
-               alt="Hydrated Splash Screen"
-               className="max-w-full max-h-full object-contain"
-            />
-         </div>
-      );
-   }
-
-   if (!initialized) {
-      return (
-         <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center text-red-600 dark:text-red-400 p-4">
-               <div>Failed to initialize database</div>
-               {error && <div className="mt-2 text-sm">{error}</div>}
+         <div className="flex items-center justify-center min-h-screen bg-[#0a0b15]">
+            <div className="animate-in zoom-in-90 duration-500 fade-in">
+               <img 
+                  src={splashImage} 
+                  alt="Hydrated Splash Screen"
+                  className="max-w-full max-h-full object-contain"
+               />
             </div>
          </div>
       );
    }
+   
+
+   // if (!initialized) {
+   //    return (
+   //       <div className="flex items-center justify-center min-h-screen">
+   //          <div className="text-center text-red-600 dark:text-red-400 p-4">
+   //             <div>Failed to initialize database</div>
+   //             {error && <div className="mt-2 text-sm">{error}</div>}
+   //          </div>
+   //       </div>
+   //    );
+   // }
 
    return (
       <Provider store={store}>

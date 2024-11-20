@@ -68,3 +68,5 @@ dist-ssr
 
 
 /android    
+resources/ios/**/*
+resources/android/**/*
