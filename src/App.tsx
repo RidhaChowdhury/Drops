@@ -54,10 +54,11 @@ export default function App() {
    if (isInitializing) {
       return (
          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
-               <div>Initializing Database...</div>
-            </div>
+            <img 
+               src="/src/assets/splash.png" 
+               alt="Hydrated Splash Screen"
+               className="max-w-full max-h-full object-contain"
+            />
          </div>
       );
    }

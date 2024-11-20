@@ -37,6 +37,7 @@ type WaterEntryDrawerProps = {
    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
    onBlur: () => void;
    onQuickAdd: (amount: number, drinkType: string) => void; // Action when quick add button is clicked
+   notificationSender: ()=> void;
 };
 
 export default function WaterEntryDrawer({
@@ -49,6 +50,7 @@ export default function WaterEntryDrawer({
    onChange,
    onBlur,
    onQuickAdd, // Add this new prop
+   notificationSender,
 }: WaterEntryDrawerProps) {
    const { theme } = useTheme();
    const [mode, setMode] = useState<'open' | 'add' | 'edit' | 'new'>();
@@ -334,7 +336,10 @@ export default function WaterEntryDrawer({
                                  .map((quickAdd) => (
                                  <Button
                                     key={quickAdd.id}
-                                    onClick={() => handleQuickAddClick(quickAdd.amount)}
+                                    onClick={async () => {
+                                       handleQuickAddClick(quickAdd.amount)
+                                       await notificationSender();
+                                    }}
                                     onMouseDown={() => handleMouseDown(quickAdd.id)}
                                     onMouseUp={handleMouseUp}
                                     onMouseLeave={handleMouseUp}
@@ -347,7 +352,10 @@ export default function WaterEntryDrawer({
                                  </Button>
                               ))}
                            </div>
-                           <ScrollBar orientation="horizontal" className='hidden'/>
+                           <ScrollBar
+                              orientation="horizontal"
+                              className="hidden"
+                           />
                         </ScrollArea>
 
                         {/* Fade overlay */}
@@ -405,9 +413,12 @@ export default function WaterEntryDrawer({
                <Separator orientation="horizontal" />
                   {(mode === 'add' || mode === 'open') && (
                      <Button
-                        onClick={() => {
+                        onClick={async () => {
                            if (mode === 'open') setMode('add');
-                           else onSaveCustom(drinkType);
+                           else {
+                           onSaveCustom(drinkType);
+                           await notificationSender();
+                        }
                         }}
                         className={`px-6 rounded-xl text-xl w-full`}
                      >

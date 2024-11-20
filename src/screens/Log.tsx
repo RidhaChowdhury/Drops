@@ -11,6 +11,8 @@ import { getWaterHistory } from '@/utils/storageUtils';
 import { RotateCcw, GlassWater } from 'lucide-react';
 import Wave from 'react-wavify';
 
+import { LocalNotifications } from '@capacitor/local-notifications';
+
 // import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 // import useSQLiteDB from "../db/useSQLiteDB";
 import { useDispatch, useSelector } from 'react-redux';
@@ -25,6 +27,13 @@ export default function Log({ isActive }: { isActive: boolean }) {
    const measurementUnit = useSelector(
       (state: RootState) => state.settings.measurementUnit
    );
+   const { notificationsEnabled, notifcationDelay } = useSelector(
+      (state: RootState) => ({
+         notificationsEnabled: state.settings.notificationsEnabled,
+         notifcationDelay: state.settings.notificationDelay,
+      })
+   );
+
    const currentDate = new Date().toISOString().split('T')[0];
    const waterHistory = getWaterHistory();
 
@@ -50,6 +59,25 @@ export default function Log({ isActive }: { isActive: boolean }) {
       }
    }, [isActive]);
 
+    const sendNotification = async () => {
+        console.log(notifcationDelay, notificationsEnabled);
+        await LocalNotifications.requestPermissions();
+        await LocalNotifications.schedule({
+          notifications: [
+              {
+                id: 1,
+                title: 'Drink more water!',
+                body:
+                    'Its been ' +
+                    notifcationDelay +
+                    ' minutes since you drank water',
+                schedule: {
+                    at: new Date(Date.now() + 60000 * notifcationDelay),
+                }, // Send immediately
+              },
+          ],
+        });
+    };
    
    const handleUndo = async () => {
     try {
@@ -282,6 +310,7 @@ export default function Log({ isActive }: { isActive: boolean }) {
             onChange={handleInputChange}
             onBlur={handleInputBlur}
             onQuickAdd={handleAddWater} // New prop to handle quick add
+            notificationSender={sendNotification}
          />
       </div>
    );
