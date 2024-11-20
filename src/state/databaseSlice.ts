@@ -87,13 +87,13 @@ export const initializeQuickAddTable = async (db: SQLiteDBConnection) => {
     const createQuickAddTableQuery = `
         CREATE TABLE IF NOT EXISTS quick_add (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            quick_add_amount INTEGER NOT NULL
+            quick_add_amount REAL NOT NULL
         );
     `;
     
     const insertDefaultValuesQuery = `
         INSERT INTO quick_add (quick_add_amount)
-        VALUES (8), (17);
+        VALUES (8), (16.9);
     `;
   
     try {
