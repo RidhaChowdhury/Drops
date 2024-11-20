@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store';
+import { RootState } from '@/state/store';
 import {
    setDailyIntakeGoal,
    setMeasurementUnit,
@@ -10,7 +10,7 @@ import {
    clearHistory,
    backupData,
    loadFromCSV,
-} from '@/settingsSlice';
+} from '@/state/settingsSlice';
 
 export function useSettings() {
    const dispatch = useDispatch();
