@@ -8,9 +8,11 @@
       "build": "tsc -b && vite build",
       "lint": "eslint .",
       "preview": "vite preview",
-      "format": "prettier --write ."
+      "format": "prettier --write .",
+      "android": "npm run build && npx cap sync && npx cap copy && npx cap open android"
    },
    "dependencies": {
+      "@capacitor-community/sqlite": "^6.0.2",
       "@capacitor/android": "^6.1.2",
       "@capacitor/assets": "^3.0.5",
       "@capacitor/cli": "^6.1.2",
@@ -53,6 +55,7 @@
       "embla-carousel-react": "^8.3.0",
       "framer-motion": "^11.11.9",
       "input-otp": "^1.2.4",
+      "jeep-sqlite": "^2.8.0",
       "lucide-react": "^0.445.0",
       "next-themes": "^0.3.0",
       "react": "^18.3.1",

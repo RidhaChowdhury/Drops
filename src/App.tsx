@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { useSwipeable } from 'react-swipeable';
 
-import { store } from '@/store';
+import { RootState, AppDispatch, store } from '@/state/store';
 import { ThemeProvider } from '@/hooks/theme-provider';
+import { useDispatch, useSelector } from 'react-redux';
+import { initializeDB } from '@/state/databaseSlice';
 
 import Log from '@/screens/Log';
 import SettingsScreen from '@/screens/Settings';
@@ -13,6 +15,13 @@ import { Toaster } from '@/components/base-ui/toaster';
 import MetricsScreen from './screens/Metrics';
 
 export default function App() {
+   const dispatch = useDispatch<AppDispatch>();
+   const { initialized, isInitializing, error } = useSelector((state: RootState) => state.database);
+
+   useEffect(() => {
+      dispatch(initializeDB());
+   }, [dispatch]);
+
    const [selectedTab, setSelectedTab] = useState('water');
 
    const tabs = [
@@ -41,6 +50,28 @@ export default function App() {
       const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
       setSelectedTab(tabs[prevIndex].value);
    };
+
+   if (isInitializing) {
+      return (
+         <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+               <div>Initializing Database...</div>
+            </div>
+         </div>
+      );
+   }
+
+   if (!initialized) {
+      return (
+         <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center text-red-600 dark:text-red-400 p-4">
+               <div>Failed to initialize database</div>
+               {error && <div className="mt-2 text-sm">{error}</div>}
+            </div>
+         </div>
+      );
+   }
 
    return (
       <Provider store={store}>
