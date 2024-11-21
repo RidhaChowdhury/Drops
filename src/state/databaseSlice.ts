@@ -1,5 +1,5 @@
 // databaseSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { SQLiteConnection, SQLiteDBConnection, CapacitorSQLite } from '@capacitor-community/sqlite';
 
 const sqlite = new SQLiteConnection(CapacitorSQLite);
@@ -195,10 +195,10 @@ const databaseSlice = createSlice({
         state.isInitializing = false;
         state.error = null;
       })
-      .addCase(initializeDB.rejected, (state, action: PayloadAction<string | undefined>) => {
+      .addCase(initializeDB.rejected, (state, action) => {
         state.initialized = false;
         state.isInitializing = false;
-        state.error = action.payload || 'Unknown database error';
+        state.error = action.payload ?? 'Unknown error';
       });
   },
 });

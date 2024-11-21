@@ -97,7 +97,7 @@ export default function App() {
                         <Log isActive={selectedTab === 'water'} />
                      </div>
                      <div className="w-full min-h-screen absolute top-0 left-full">
-                        <MetricsScreen />
+                        <MetricsScreen isActive={selectedTab === 'metrics'} />
                      </div>
                      <div className="w-full min-h-screen absolute top-0 left-[200%]">
                         <SettingsScreen />
